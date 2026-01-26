@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+    --font-sans: "Inter", sans-serif;
+    --font-display: "Space Grotesk", sans-serif;
+
+    --color-slate-950: #020617;
+    --color-cyan-400: #22d3ee;
+}
+
+@layer base {
+    body {
+        @apply font-sans antialiased overflow-x-hidden selection:bg-cyan-500 selection:text-white bg-slate-950 text-slate-200;
+    }
+}
+
+/* --- 1. Dynamic Background Grid --- */
+.bg-grid {
+    background-size: 50px 50px;
+    background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+}
+
+/* --- 2. Mouse Follower Spotlight --- */
+.cursor-spotlight {
+    background: radial-gradient(600px circle at var(--x, 50%) var(--y, 50%), rgba(29, 78, 216, 0.15), transparent 80%);
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* --- 3. Static Border Button --- */
+.btn-static-border {
+    position: relative;
+    display: inline-flex;
+    overflow: hidden;
+    padding: 1px;
+    border-radius: 9999px;
+    background: conic-gradient(from 90deg at 50% 50%, #E2CBFF 0%, #393BB2 50%, #E2CBFF 100%);
+}
+
+.btn-static-border span {
+    position: relative;
+    display: inline-flex;
+    height: 100%;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background-color: #020617;
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    color: white;
+    z-index: 20;
+    transition: background-color 0.2s;
+}
+
+.btn-static-border:hover span {
+    background-color: #0f172a;
+}
+
+.btn-static-border:active {
+    transform: scale(0.98);
+}
+
+/* --- 4. Glowing Card Borders --- */
+.card-wrapper {
+    position: relative;
+    border-radius: 1rem;
+    background-color: rgba(255, 255, 255, 0.03);
+    padding: 2px;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.card-wrapper:hover {
+    transform: translateY(-2px);
+}
+
+.card-content {
+    background-color: #0a0a0a;
+    border-radius: 0.9rem;
+    height: 100%;
+    position: relative;
+    z-index: 20;
+}
+
+.card-wrapper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(255, 255, 255, 0.3), transparent 40%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 10;
+}
+
+.card-wrapper:hover::before {
+    opacity: 1;
+}
+
+/* --- Text Gradient --- */
+.text-gradient {
+    background: linear-gradient(to right, #c084fc, #6366f1, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Form Input Styles */
+.form-input {
+    width: 100%;
+    background-color: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: white;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.form-input:focus {
+    border-color: #06b6d4;
+    background-color: rgba(15, 23, 42, 0.8);
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+}
+
+/* Chat Messages */
+.chat-msg {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    max-width: 85%;
+}
+
+.chat-msg.user {
+    background: rgba(34, 211, 238, 0.1);
+    border: 1px solid rgba(34, 211, 238, 0.2);
+    color: #a5f3fc;
+    align-self: flex-end;
+}
+
+.chat-msg.bot {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    align-self: flex-start;
+}
+
+.typing-dot {
+    width: 6px;
+    height: 6px;
+    background: #94a3b8;
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out both;
+}
+
+.typing-dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
