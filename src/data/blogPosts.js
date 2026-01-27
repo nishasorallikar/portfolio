@@ -47,5 +47,40 @@ export const blogPosts = [
                 </a>
             </div>
         `
+    },
+    {
+        id: 'phishing-analysis-2-btlo',
+        title: 'Phishing Analysis 2 — BTLO Room',
+        excerpt: 'Step-by-step walkthrough of a phishing analysis challenge from BTLO. Analyzing a realistic Amazon phishing email using various tools.',
+        date: 'Jan 27, 2026',
+        readTime: '10 min read',
+        category: 'Blue Team',
+        tags: ['Phishing', 'BTLO', 'Investigation', 'Email Security'],
+        content: `
+            <h2>Phishing Analysis 2 Walkthrough</h2>
+            <p>In this second installment, I dive deep into another phishing scenario from Blue Team Labs Online, this time involving a sophisticated Amazon impersonation.</p>
+            
+            <p><strong>Tools Used:</strong></p>
+            <ul>
+                <li>Text Editor (Sublime Text)</li>
+                <li>CyberChef</li>
+                <li>URL2PNG</li>
+            </ul>
+
+            <p><strong>Key Findings:</strong></p>
+            <ul>
+                <li><strong>Sender:</strong> amazon@zyevantoby.cn (Suspicious .cn domain)</li>
+                <li><strong>Technique:</strong> Base64 encoding used to hide malicious links</li>
+                <li><strong>IOC:</strong> amaozn.zzyuchengzhika.cn</li>
+            </ul>
+            
+            <p>You can read the full detailed write-up on my Medium blog:</p>
+            
+            <div class="my-8">
+                <a href="https://medium.com/@nishasorallikar/phishing-analysis-2-btlo-room-d0ba52ca4ec4?postPublishedType=initial" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Read on Medium <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        `
     }
 ];
