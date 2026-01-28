@@ -82,5 +82,33 @@ export const blogPosts = [
                 </a>
             </div>
         `
+    },
+    {
+        id: 'the-report-btlo-room',
+        title: 'The Report (BTLO Room)',
+        excerpt: 'A detailed walkthrough of the "The Report" room on Blue Team Labs Online (BTLO), analyzing the Red Canary 2022 Threat Detection Report.',
+        date: 'Jan 28, 2026',
+        readTime: '5 min read',
+        category: 'Blue Team',
+        tags: ['Blue Team', 'SOC', 'BTLO', 'Walkthrough', 'Threat Intelligence'],
+        content: `
+            <h2>The Report (BTLO) Walkthrough</h2>
+            <p>This article documents my investigation into the "The Report" room on Blue Team Labs Online. The challenge involves analyzing the Red Canary 2022 Threat Detection Report to identify trends and actionable intelligence for a SOC.</p>
+            
+            <p><strong>Key Findings:</strong></p>
+            <ul>
+                <li><strong>Log4j:</strong> Major supply chain vulnerability.</li>
+                <li><strong>T1059:</strong> Most common MITRE technique.</li>
+                <li><strong>PrintNightmare:</strong> Zero-day driver vulnerability.</li>
+            </ul>
+
+            <p>You can read the full detailed write-up on my Medium blog:</p>
+            
+            <div class="my-8">
+                <a href="https://medium.com/@nishasorallikar/the-report-btlo-room-c247b3140d7c" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Read on Medium <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        `
     }
 ];
