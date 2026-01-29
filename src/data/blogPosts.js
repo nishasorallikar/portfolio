@@ -110,5 +110,33 @@ export const blogPosts = [
                 </a>
             </div>
         `
+    },
+    {
+        id: 'bruteforce-btlo-rdp-walkthrough',
+        title: 'Bruteforce (BTLO) (RDP) Walkthrough 🛡️',
+        excerpt: 'A detailed walkthrough of the Bruteforce (RDP) room on Blue Team Labs Online (BTLO). Analyzing Windows Security Event logs to investigate a brute force attack.',
+        date: 'Jan 29, 2026',
+        readTime: '4 min read',
+        category: 'Blue Team',
+        tags: ['Blue Team', 'SOC', 'BTLO', 'Walkthrough', 'Brute Force'],
+        content: `
+            <h2>Bruteforce (RDP) Walkthrough</h2>
+            <p>This article documents my investigation into the "Bruteforce" room on Blue Team Labs Online. The challenge involves analyzing Windows Security Event logs to identify a brute force attack, targeted accounts, and attacker details.</p>
+            
+            <p><strong>Key Findings:</strong></p>
+            <ul>
+                <li><strong>Event ID 4625:</strong> key indicator of failed logons.</li>
+                <li><strong>Attacker IP:</strong> 113.161.192.227 (Vietnam).</li>
+                <li><strong>Targeted Account:</strong> administrator.</li>
+            </ul>
+
+            <p>You can read the full detailed write-up on my Medium blog:</p>
+            
+            <div class="my-8">
+                <a href="https://medium.com/@nishasorallikar/bruteforce-btlo-rdp-walkthrough-%EF%B8%8F-b2af537efc43" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Read on Medium <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        `
     }
 ];
