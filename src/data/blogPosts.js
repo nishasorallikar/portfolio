@@ -138,5 +138,33 @@ export const blogPosts = [
                 </a>
             </div>
         `
+    },
+    {
+        id: 'btlo-piggy-walkthrough',
+        title: 'BTLO "Piggy" Walkthrough',
+        excerpt: 'A detailed walkthrough of the Piggy room on Blue Team Labs Online (BTLO). Analyzing PCAP files with Wireshark and performing OSINT.',
+        date: 'Jan 30, 2026',
+        readTime: '5 min read',
+        category: 'Blue Team',
+        tags: ['Blue Team', 'BTLO', 'Walkthrough', 'Wireshark', 'OSINT'],
+        content: `
+            <h2>BTLO Piggy Walkthrough</h2>
+            <p>This article documents my investigation into the "Piggy" room on Blue Team Labs Online. The challenge involves analyzing PCAP files using Wireshark and OSINT to identify suspicious traffic, malware, and map activity to MITRE ATT&CK.</p>
+            
+            <p><strong>Key Findings:</strong></p>
+            <ul>
+                <li><strong>TrickBot:</strong> Identified malware family via C2 infrastructure.</li>
+                <li><strong>Cryptominer:</strong> Detected unauthorized mining activity (T1496).</li>
+                <li><strong>DNS C2:</strong> Observed Command & Control via DNS TXT records (T1071.004).</li>
+            </ul>
+
+            <p>You can read the full detailed write-up on my Medium blog:</p>
+            
+            <div class="my-8">
+                <a href="https://medium.com/@nishasorallikar/btlo-piggy-walkthrough-62c18eea6900" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Read on Medium <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        `
     }
 ];
