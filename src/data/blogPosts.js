@@ -166,5 +166,33 @@ export const blogPosts = [
                 </a>
             </div>
         `
+    },
+    {
+        id: 'btlo-secrets-room-walkthrough',
+        title: 'BTLO — Secrets Room (Walkthrough)',
+        excerpt: 'A simple walkthrough of the Secrets room on Blue Team Labs Online (BTLO). It is specifically designed for beginners to explain JWT and core blue team concepts.',
+        date: 'Jan 31, 2026',
+        readTime: '5 min read',
+        category: 'Blue Team',
+        tags: ['Blue Team', 'BTLO', 'Walkthrough', 'JWT', 'Privilege Escalation'],
+        content: `
+            <h2>BTLO Secrets Room Walkthrough</h2>
+            <p>This article documents my investigation into the "Secrets" room on Blue Team Labs Online. The challenge involves analyzing a JWT (JSON Web Token) to identify weak secrets and escalate privileges.</p>
+            
+            <p><strong>Key Findings:</strong></p>
+            <ul>
+                <li><strong>JWT Structure:</strong> Analyzed Header, Payload, and Signature.</li>
+                <li><strong>Weak Secret:</strong> Brute-forced the HS256 secret key <code>bT!0</code>.</li>
+                <li><strong>Privilege Escalation:</strong> Forged a new admin token using the cracked secret.</li>
+            </ul>
+
+            <p>You can read the full detailed write-up on my Medium blog:</p>
+            
+            <div class="my-8">
+                <a href="https://medium.com/@nishasorallikar/btlo-secrets-room-walkthrough-5978bd1888ed" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Read on Medium <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        `
     }
 ];
