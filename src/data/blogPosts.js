@@ -222,5 +222,34 @@ export const blogPosts = [
                 </a>
             </div>
         `
+    },
+    {
+        id: 'log-analysis-sysmon-btlo-room',
+        title: 'Log Analysis — Sysmon (BTLO Room)',
+        excerpt: 'A detailed walkthrough of the Log Analysis - Sysmon room on Blue Team Labs Online (BTLO). Analyzing Sysmon logs to reconstruct an attack timeline.',
+        date: 'Jan 26, 2026',
+        readTime: '4 min read',
+        category: 'Blue Team',
+        tags: ['Blue Team', 'BTLO', 'Walkthrough', 'Sysmon', 'Log Analysis'],
+        content: `
+            <h2>Log Analysis — Sysmon Walkthrough</h2>
+            <p>This article documents my investigation into the "Log Analysis — Sysmon" room on Blue Team Labs Online. The challenge involves analyzing Sysmon logs from a compromised Windows endpoint to reconstruct the attacker’s activity step by step.</p>
+            
+            <p><strong>Key Findings:</strong></p>
+            <ul>
+                <li><strong>Initial Access:</strong> Via malicious <code>updater.hta</code> file.</li>
+                <li><strong>PowerShell Abuse:</strong> Used <code>Invoke-WebRequest</code> on port 6969.</li>
+                <li><strong>Defense Evasion:</strong> Hijacked <code>COMSPEC</code> environment variable.</li>
+                <li><strong>Privilege Escalation:</strong> Downloaded JuicyPotato exploit.</li>
+            </ul>
+
+            <p>You can read the full detailed write-up on my Medium blog:</p>
+            
+            <div class="my-8">
+                <a href="https://medium.com/@nishasorallikar/log-analysis-sysmon-btlo-room-adad2bad90e1?postPublishedType=initial" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Read on Medium <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        `
     }
 ];
