@@ -251,5 +251,33 @@ export const blogPosts = [
                 </a>
             </div>
         `
+    },
+    {
+        id: 'network-analysis-ransomware',
+        title: 'Network Analysis — Ransomware',
+        excerpt: 'A detailed walkthrough of the Network Analysis — Ransomware challenge on Blue Team Labs Online (BTLO). Investigating a ransomware attack using Wireshark.',
+        date: 'Feb 4, 2026',
+        readTime: '6 min read',
+        category: 'Blue Team',
+        tags: ['Blue Team', 'BTLO', 'Walkthrough', 'Wireshark', 'Ransomware', 'Malware Analysis'],
+        content: `
+            <h2>Network Analysis — Ransomware Walkthrough</h2>
+            <p>This article documents my investigation into the "Network Analysis — Ransomware" room on Blue Team Labs Online. The challenge involves analyzing a PCAP file to trace a ransomware infection, identifying the payload (TeslaCrypt), and recovering encrypted files.</p>
+            
+            <p><strong>Key Findings:</strong></p>
+            <ul>
+                <li><strong>Payload:</strong> TeslaCrypt ransomware delivered via HTTP.</li>
+                <li><strong>IOCs:</strong> Malicious domain <code>dunyamuzelerimuzesi.com</code> and IP <code>10.0.2.15</code>.</li>
+                <li><strong>Recovery:</strong> Decrypted files using known TeslaCrypt master keys.</li>
+            </ul>
+
+            <p>You can read the full detailed write-up on my Medium blog:</p>
+            
+            <div class="my-8">
+                <a href="https://medium.com/@nishasorallikar/network-analysis-ransomware-9763553ecbc2?postPublishedType=initial" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Read on Medium <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        `
     }
 ];
