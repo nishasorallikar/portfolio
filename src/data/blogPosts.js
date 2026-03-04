@@ -279,5 +279,33 @@ export const blogPosts = [
                 </a>
             </div>
         `
+    },
+    {
+        id: 'thm-splunk-basics-walkthrough',
+        title: 'THM-Splunk: The basics walkthrough',
+        excerpt: 'Understand how SOC analysts investigate logs using Splunk. A walkthrough of the TryHackMe Splunk basics room.',
+        date: 'Mar 4, 2026',
+        readTime: '4 min read',
+        category: 'Blue Team',
+        tags: ['Splunk', 'SIEM', 'SOC', 'TryHackMe', 'Walkthrough'],
+        content: `
+            <h2>THM-Splunk: The basics walkthrough</h2>
+            <p>Splunk is one of the most widely used SIEM (Security Information and Event Management) tools in cybersecurity. It helps organizations collect, analyze, and monitor logs from different systems in real time.</p>
+            
+            <p><strong>Key Topics Covered:</strong></p>
+            <ul>
+                <li>Splunk Architecture (Forwarder, Indexer, Search Head)</li>
+                <li>Navigating Splunk interface and adding data</li>
+                <li>Performing search queries using SPL</li>
+            </ul>
+
+            <p>You can read the full detailed write-up on my Medium blog:</p>
+            
+            <div class="my-8">
+                <a href="https://medium.com/@nishasorallikar/thm-splunk-the-basics-walkthrough-7f28e75f5889" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Read on Medium <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        `
     }
 ];
