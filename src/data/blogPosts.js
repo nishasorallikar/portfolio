@@ -307,5 +307,35 @@ export const blogPosts = [
                 </a>
             </div>
         `
+    },
+    {
+        id: 'tryhackme-phishing-analysis-tools',
+        title: 'TryHackMe — Phishing Analysis Tools',
+        excerpt: 'A detailed walkthrough of the Phishing Analysis Tools room on TryHackMe. Learning how to investigate suspicious emails using various SOC tools.',
+        date: 'Mar 6, 2026',
+        readTime: '6 min read',
+        category: 'Blue Team',
+        tags: ['TryHackMe', 'Phishing', 'SOC Tools', 'Analysis', 'Walkthrough'],
+        content: `
+            <h2>TryHackMe — Phishing Analysis Tools Walkthrough</h2>
+            <p>In this walkthrough, I explore the Phishing Analysis Tools room on TryHackMe, which focuses on the tools and techniques SOC analysts use to investigate suspicious emails.</p>
+            
+            <p><strong>Key Tools & Concepts:</strong></p>
+            <ul>
+                <li><strong>Email Header Analysis:</strong> Identifying sender IPs, Return-Paths, and potential typosquatting.</li>
+                <li><strong>URL Extraction:</strong> Safely extracting and deobfuscating malicious links.</li>
+                <li><strong>Malware Sandboxes:</strong> Using tools like Any.Run and PhishTool for dynamic analysis.</li>
+                <li><strong>Attachment Investigation:</strong> Analyzing malicious executables and documents disguised as legitimate files.</li>
+            </ul>
+
+            <p>You can read the full detailed write-up on my Medium blog:</p>
+            
+            <div class="my-8">
+                <a href="https://medium.com/@nishasorallikar/tryhackme-phishing-analysis-tools-8d26ce1e1bcc" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Read on Medium <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        `
     }
+
 ];
