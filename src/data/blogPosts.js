@@ -336,6 +336,35 @@ export const blogPosts = [
                 </a>
             </div>
         `
+    },
+    {
+        id: 'elastic-stack-the-basics-walkthrough',
+        title: 'Elastic Stack: The Basics | TryHackMe Walkthrough',
+        excerpt: 'Understand how SOC analysts investigate logs using Elastic Stack (ELK). A walkthrough of the TryHackMe Elastic Stack basics room.',
+        date: 'Mar 7, 2026',
+        readTime: '6 min read',
+        category: 'Blue Team',
+        tags: ['Elastic Stack', 'ELK', 'Kibana', 'TryHackMe', 'Walkthrough'],
+        content: `
+            <h2>Elastic Stack: The Basics | TryHackMe Walkthrough</h2>
+            <p>Elastic Stack (ELK) is a powerful set of tools used for log collection, analysis, and visualization. Many Security Operations Centers (SOC) use it to investigate suspicious activity and monitor systems.</p>
+            
+            <p><strong>Key Topics Covered:</strong></p>
+            <ul>
+                <li>ELK Components (Elasticsearch, Logstash, Kibana)</li>
+                <li>Investigating VPN logs using Kibana Discover tab</li>
+                <li>Writing KQL queries to filter logs</li>
+                <li>Creating visualizations and dashboards</li>
+            </ul>
+
+            <p>You can read the full detailed write-up on my Medium blog:</p>
+            
+            <div class="my-8">
+                <a href="https://medium.com/@nishasorallikar/elastic-stack-the-basics-tryhackme-walkthrough-642ebc35cc3c" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Read on Medium <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        `
     }
 
 ];
