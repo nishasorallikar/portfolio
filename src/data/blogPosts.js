@@ -365,6 +365,34 @@ export const blogPosts = [
                 </a>
             </div>
         `
-    }
+    },
+    {
+        id: 'wireshark-the-basics-walkthrough',
+        title: 'Wireshark: The Basics | TryHackMe Walkthrough',
+        excerpt: 'Learn the fundamentals of Wireshark, including opening and analyzing PCAP files, understanding packet layers, filtering traffic, and extracting files.',
+        date: 'Mar 12, 2026',
+        readTime: '8 min read',
+        category: 'Blue Team',
+        tags: ['Wireshark', 'TryHackMe', 'Network Security', 'SOC Analysis'],
+        content: `
+            <h2>Wireshark: The Basics Walkthrough</h2>
+            <p>Wireshark is one of the most important tools used by SOC Analysts and Network Security professionals to capture and analyze network traffic.</p>
+            
+            <p><strong>Key Topics Covered:</strong></p>
+            <ul>
+                <li>Opening and inspecting PCAP files</li>
+                <li>Analyzing packet layers and protocol layers</li>
+                <li>Using search and filtering techniques</li>
+                <li>Exporting objects from captured traffic</li>
+            </ul>
 
+            <p>You can read the full detailed write-up on my Medium blog:</p>
+            
+            <div class="my-8">
+                <a href="https://medium.com/@nishasorallikar/wireshark-the-basics-tryhackme-walkthrough-72e6b39fea0f" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Read on Medium <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        `
+    }
 ];
