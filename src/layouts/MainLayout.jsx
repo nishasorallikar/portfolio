@@ -47,10 +47,12 @@ const MainLayout = ({ children }) => {
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 relative">
-            {/* 1. Background Grid & Spotlight */}
-            <div className="fixed inset-0 z-0 bg-black">
-                <div className="absolute inset-0 bg-grid opacity-20"></div>
-                <div ref={spotlightRef} className="cursor-spotlight"></div>
+            {/* 1. Background Grid & Spotlight & Cyber Scanlines */}
+            <div className="fixed inset-0 z-0 bg-black overflow-hidden pointer-events-none">
+                <div className="absolute inset-0 bg-grid opacity-30"></div>
+                <div ref={spotlightRef} className="cursor-spotlight mix-blend-screen"></div>
+                {/* CRT Screen Scanline Overlay */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(34,211,238,0.01)_51%,transparent_51%)] bg-[length:100%_4px] z-10"></div>
             </div>
 
             <Navbar />
