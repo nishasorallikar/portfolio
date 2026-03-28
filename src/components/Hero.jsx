@@ -7,7 +7,7 @@ import { NmapAnimation } from './NmapAnimation';
 const Hero = () => {
     const handleDownload = () => {
         toast.success('Opening Resume...');
-        window.open('https://docs.google.com/document/d/1WB2fSkArQuzS-2RkcmUf7Gd47UlfYVzAwwECj0ZzLS0/edit?usp=sharing', '_blank');
+        window.open('https://drive.google.com/drive/folders/1f8lE_bkAtoWt54MpXuMcrPBspVEy8XNK?usp=sharing', '_blank');
     };
 
     const scrollToWork = () => {
