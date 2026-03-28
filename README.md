@@ -2,7 +2,7 @@
 
 A high-performance, interactive portfolio website tailored for a Cybersecurity Professional / SOC Analyst. Built with a "defense-in-depth" aesthetic, featuring glassmorphism UI, real-time command-line animations, and advanced Framer Motion interactions.
 
-![Portfolio Preview Showcase](https://via.placeholder.com/1200x630/0b0f19/22d3ee?text=Nisha.sec+Cybersecurity+Portfolio) *(Replace with actual screenshot)*
+![SOC Lab Full Architecture & Documentation](public/soc-lab-documentation.png)
 
 ## 🚀 Core Features & Technical Engineering
 
