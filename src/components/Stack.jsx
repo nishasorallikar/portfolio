@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /* ─── Intersection Observer hook ─── */
 function useInView(threshold = 0.12) {
@@ -95,7 +95,7 @@ const catIcons = {
     cert: (c) => <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>,
 };
 
-/* ─── Skills data ─── */
+/* ─── Skills data w/ Extended Details ─── */
 const skillCategories = [
     {
         title: 'SIEM & Monitoring',
@@ -103,6 +103,11 @@ const skillCategories = [
         color: '#22d3ee',
         tools: ['Splunk', 'Wazuh', 'ELK Stack'],
         details: 'Alert triage, rule tuning, IOC correlation, false positive reduction',
+        extendedDetails: [
+            "Configured and managed Splunk dashboards for real-time threat detection and operational visibility.",
+            "Tuned Wazuh rules to monitor endpoint file integrity and successfully reduced false positive alerts by 40%.",
+            "Built custom ELK log stash pipelines for parsing complex cloud environment telemetry."
+        ]
     },
     {
         title: 'Log Analysis',
@@ -110,6 +115,11 @@ const skillCategories = [
         color: '#a855f7',
         tools: ['Windows Event Logs', 'Linux Syslogs', 'Network Device Logs', 'App Audit Trails'],
         details: 'Parsing, correlation, and forensic review of multi-source log data',
+        extendedDetails: [
+            "Performed forensic analysis on Windows Event Logs (Security, System, Sysmon) tracking lateral movement.",
+            "Correlated massive sets of Linux syslogs to identify distributed brute-force SSH attacks.",
+            "Parsed and enriched raw network device telemetry to pinpoint anomalous traffic patterns and prevent exfiltration."
+        ]
     },
     {
         title: 'Networking',
@@ -117,6 +127,11 @@ const skillCategories = [
         color: '#3b82f6',
         tools: ['TCP/IP', 'DNS', 'HTTP/S', 'Wireshark', 'Zeek', 'Snort'],
         details: 'Routing/switching, firewall analysis, IDS/IPS configuration',
+        extendedDetails: [
+            "Captured and analyzed gigabytes of PCAPs using Wireshark for deep packet inspection and reverse engineering.",
+            "Configured and deployed Zeek/Snort IDS rules to detect malicious signatures at the network perimeter.",
+            "Troubleshot and secured complex layers of TCP/IP routing, DNS resolution, and internal firewall policies."
+        ]
     },
     {
         title: 'Incident Response',
@@ -124,6 +139,11 @@ const skillCategories = [
         color: '#ef4444',
         tools: ['Alert Triage', 'Severity Assessment', 'Containment', 'Eradication'],
         details: 'Incident ticket documentation, root cause analysis, recovery',
+        extendedDetails: [
+            "Triaged and responded to high-severity SIEM/EDR alerts while strictly adhering to internal incident SLAs.",
+            "Conducted comprehensive root cause analysis and extensively documented incidents in enterprise ticketing systems.",
+            "Coordinated containment and eradication of threats during simulated war-room scenarios based on established playbooks."
+        ]
     },
     {
         title: 'Security Frameworks',
@@ -131,6 +151,11 @@ const skillCategories = [
         color: '#22c55e',
         tools: ['MITRE ATT&CK', 'Cyber Kill Chain', 'OWASP Top 10', 'NIST CSF', 'CIS Controls'],
         details: 'Threat modeling, compliance mapping, risk assessment',
+        extendedDetails: [
+            "Mapped existing SOC detection coverage heavily against the MITRE ATT&CK framework identifying key blind spots.",
+            "Assessed the organizational cyber posture strictly against the NIST Cybersecurity Framework guidelines.",
+            "Implemented and audited CIS Controls across various OS endpoints to harden enterprise environments."
+        ]
     },
     {
         title: 'Threat & Vuln Tools',
@@ -138,6 +163,11 @@ const skillCategories = [
         color: '#f59e0b',
         tools: ['Nmap', 'Nessus', 'Burp Suite', 'Metasploit', 'Autopsy', 'Active Directory'],
         details: 'Vulnerability assessment, penetration testing, forensic analysis',
+        extendedDetails: [
+            "Conducted routine and ad hoc vulnerability scans using Nessus, prioritizing the remediation of critical CVEs.",
+            "Leveraged Nmap for network reconnaissance, aggressive port scanning, and service enumeration.",
+            "Performed specialized web application vulnerability assessments using Burp Suite."
+        ]
     },
     {
         title: 'Scripting & Automation',
@@ -145,6 +175,11 @@ const skillCategories = [
         color: '#ec4899',
         tools: ['Python', 'PowerShell', 'SQL', 'Bash'],
         details: 'Log parsing, security automation, custom detection scripts',
+        extendedDetails: [
+            "Developed maintainable Python scripts to automate repetitive log parsing and automated alert enrichment.",
+            "Leveraged advanced PowerShell scripting for Active Directory querying and automated threat remediation tasks.",
+            "Created tailored Bash scripts specifically aimed at rapid Linux server hardening and cronjob monitoring."
+        ]
     },
     {
         title: 'Cloud Platforms',
@@ -152,6 +187,11 @@ const skillCategories = [
         color: '#6366f1',
         tools: ['Azure', 'AWS (S3, EC2)', 'Cloudflare', 'Docker'],
         details: 'Cloud security posture, container security, CDN hardening',
+        extendedDetails: [
+            "Regularly audited AWS resource configurations (IAM, S3 policies, EC2 security groups) aligned with best practices.",
+            "Monitored Azure cloud environments to swiftly verify remediation of identified access misconfigurations.",
+            "Secured incoming web traffic and deflected active DDoS attempts utilizing Cloudflare WAF and CDN rules."
+        ]
     },
 ];
 
@@ -161,38 +201,347 @@ const certifications = [
     { name: 'Certified Blue Team Practitioner (CBTP)', org: 'SecOps Group', color: '#22d3ee' },
 ];
 
-/* ─── Skill Card ─── */
-const SkillCard = ({ category, index, inView }) => {
-    const CatIcon = catIcons[category.icon];
+/* ─── Animated Category Visualizers ─── */
+const Visualizers = {
+    siem: ({ color }) => (
+        <div className="relative w-full h-full flex items-center justify-center">
+            {/* Radar Sweep */}
+            <motion.div 
+                className="absolute w-32 h-32 rounded-full border border-t-0 border-r-0 opacity-40"
+                style={{ borderColor: color, background: `conic-gradient(from 0deg, transparent 0deg, transparent 270deg, ${color} 360deg)` }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 4, ease: "linear", repeat: Infinity }}
+            />
+            {/* Radar Rings */}
+            {[1, 2, 3].map(i => (
+                <div key={i} className="absolute rounded-full border opacity-20" style={{ width: i*40, height: i*40, borderColor: color }} />
+            ))}
+            {/* Pings */}
+            {[...Array(3)].map((_, i) => (
+                <motion.div key={i} className="absolute w-2 h-2 rounded-full" style={{ background: color, top: `${30+Math.random()*40}%`, left: `${30+Math.random()*40}%` }}
+                    animate={{ scale: [0, 2, 0], opacity: [0, 1, 0] }}
+                    transition={{ duration: 2, delay: i*1.2, repeat: Infinity }}
+                />
+            ))}
+        </div>
+    ),
+    log: ({ color }) => (
+        <div className="relative w-full h-full flex flex-col items-center justify-center gap-2 overflow-hidden px-10">
+            {/* Scrolling Logs */}
+            <motion.div 
+                className="w-full flex flex-col gap-2"
+                animate={{ y: [0, -60] }}
+                transition={{ duration: 3, ease: "linear", repeat: Infinity }}
+            >
+                {[...Array(6)].map((_, i) => (
+                    <div key={i} className="w-full h-4 rounded opacity-40 flex items-center px-2 gap-2" style={{ background: `${color}15` }}>
+                        <div className="w-2 h-2 rounded-full" style={{ background: color }} />
+                        <div className="h-1 rounded w-1/3" style={{ background: `${color}40` }} />
+                        <div className="h-1 rounded w-1/4" style={{ background: `${color}40` }} />
+                    </div>
+                ))}
+            </motion.div>
+        </div>
+    ),
+    network: ({ color }) => (
+        <div className="relative w-full h-full flex items-center justify-center">
+            <svg className="absolute inset-0 w-full h-full">
+                <motion.line x1="20%" y1="50%" x2="50%" y2="20%" stroke={`${color}40`} strokeWidth="2" strokeDasharray="4 4" />
+                <motion.line x1="50%" y1="20%" x2="80%" y2="50%" stroke={`${color}40`} strokeWidth="2" strokeDasharray="4 4" />
+                <motion.line x1="80%" y1="50%" x2="50%" y2="80%" stroke={`${color}40`} strokeWidth="2" strokeDasharray="4 4" />
+                <motion.line x1="50%" y1="80%" x2="20%" y2="50%" stroke={`${color}40`} strokeWidth="2" strokeDasharray="4 4" />
+                
+                {/* Packets */}
+                <motion.circle r="3" fill={color} animate={{ cx: ["20%", "50%", "80%", "50%", "20%"], cy: ["50%", "20%", "50%", "80%", "50%"] }} transition={{ duration: 4, ease: "linear", repeat: Infinity }} />
+                <motion.circle r="3" fill={color} animate={{ cx: ["80%", "50%", "20%", "50%", "80%"], cy: ["50%", "80%", "50%", "20%", "50%"] }} transition={{ duration: 4, ease: "linear", repeat: Infinity }} />
+            </svg>
+            {/* Nodes */}
+            <div className="absolute w-6 h-6 rounded-md z-10" style={{ left: 'calc(20% - 12px)', top: 'calc(50% - 12px)', background: `${color}80` }} />
+            <div className="absolute w-6 h-6 rounded-md z-10" style={{ left: 'calc(50% - 12px)', top: 'calc(20% - 12px)', background: `${color}80` }} />
+            <div className="absolute w-6 h-6 rounded-md z-10" style={{ left: 'calc(80% - 12px)', top: 'calc(50% - 12px)', background: `${color}80` }} />
+            <div className="absolute w-6 h-6 rounded-md z-10" style={{ left: 'calc(50% - 12px)', top: 'calc(80% - 12px)', background: `${color}80` }} />
+        </div>
+    ),
+    incident: ({ color }) => (
+        <div className="relative w-full h-full flex items-center justify-center">
+            <motion.div 
+                className="w-16 h-16 rounded-full flex items-center justify-center z-10"
+                style={{ background: `${color}20`, border: `2px solid ${color}` }}
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+            >
+                <div className="w-6 h-6 rounded-full" style={{ background: color }} />
+            </motion.div>
+            {/* Pulse rings */}
+            {[...Array(3)].map((_, i) => (
+                <motion.div key={i} className="absolute w-16 h-16 rounded-full" style={{ border: `2px solid ${color}` }}
+                    animate={{ scale: [1, 3], opacity: [0.8, 0] }}
+                    transition={{ duration: 2, delay: i*0.6, repeat: Infinity, ease: "easeOut" }}
+                />
+            ))}
+        </div>
+    ),
+    framework: ({ color }) => (
+        <div className="relative w-full h-full flex flex-col items-center justify-center gap-1">
+            {/* Compliance mapping representation */}
+            {[...Array(3)].map((_, row) => (
+                <div key={row} className="flex gap-1">
+                    {[...Array(5)].map((_, col) => (
+                        <motion.div 
+                            key={col} 
+                            className="w-6 h-6 rounded-sm"
+                            style={{ background: `${color}30` }}
+                            animate={{ opacity: [0.3, 1, 0.3], background: [`${color}30`, `${color}`, `${color}30`] }}
+                            transition={{ duration: 3, delay: (row+col)*0.2, repeat: Infinity }}
+                        />
+                    ))}
+                </div>
+            ))}
+        </div>
+    ),
+    vuln: ({ color }) => (
+        <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+            {/* Target Reticle */}
+            <motion.div 
+                className="absolute w-20 h-20 rounded-full border-2"
+                style={{ borderColor: color }}
+                animate={{ x: [-40, 40, -40], y: [-20, 20, -20] }}
+                transition={{ duration: 4, ease: "easeInOut", repeat: Infinity }}
+            >
+                <div className="absolute left-1/2 top-0 bottom-0 w-0.5 -ml-px" style={{ background: color }} />
+                <div className="absolute top-1/2 left-0 right-0 h-0.5 -mt-px" style={{ background: color }} />
+            </motion.div>
+            {/* Vulnerabilities (Nodes) */}
+            {[...Array(5)].map((_, i) => (
+                <div key={i} className="absolute w-3 h-3 rounded-full opacity-50" style={{ background: color, left: `${20+Math.random()*60}%`, top: `${20+Math.random()*60}%` }} />
+            ))}
+        </div>
+    ),
+    scripting: ({ color }) => (
+        <div className="relative w-full h-full flex flex-col items-start justify-center px-10">
+            {/* Typing effect */}
+            <div className="font-mono text-xs opacity-80" style={{ color: color }}>
+                {'>'} initializing automation_script.py...
+            </div>
+            <motion.div 
+                className="w-2 h-4 mt-1"
+                style={{ background: color }}
+                animate={{ opacity: [1, 0] }}
+                transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+            />
+            <motion.div 
+                className="mt-4 font-mono text-[10px] w-full"
+                style={{ color: `${color}80` }}
+                animate={{ opacity: [0, 1] }}
+                transition={{ delay: 1, duration: 0.5 }}
+            >
+                <div className="h-1.5 rounded w-full mb-2" style={{ background: `${color}30` }} />
+                <div className="h-1.5 rounded w-5/6 mb-2" style={{ background: `${color}30` }} />
+                <div className="h-1.5 rounded w-4/6" style={{ background: `${color}30` }} />
+            </motion.div>
+        </div>
+    ),
+    cloud: ({ color }) => (
+        <div className="relative w-full h-full flex items-center justify-center">
+             {/* Floating Cloud Entities */}
+            <motion.div 
+                className="absolute w-20 h-10 rounded-full mix-blend-screen backdrop-blur-md"
+                style={{ border: `1px solid ${color}`, background: `${color}20`, top: '40%', left: '25%' }}
+                animate={{ y: [-10, 10, -10], x: [-5, 5, -5] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div 
+                className="absolute w-16 h-8 rounded-full mix-blend-screen backdrop-blur-md"
+                style={{ border: `1px solid ${color}`, background: `${color}10`, top: '25%', left: '50%' }}
+                animate={{ y: [10, -10, 10], x: [5, -5, 5] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            />
+             {/* Sync links */}
+             <svg className="absolute inset-0 w-full h-full z-[-1]">
+                <motion.line x1="40%" y1="50%" x2="60%" y2="35%" stroke={`${color}40`} strokeWidth="1" strokeDasharray="3 3"
+                    animate={{ strokeDashoffset: [0, 20] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                />
+             </svg>
+        </div>
+    ),
+};
+
+const CyberVisualizer = ({ category }) => {
+    const SpecificVisualizer = Visualizers[category.icon] || Visualizers['siem']; // Fallback
+    
     return (
-        <div
-            className="group relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300"
+        <div className="relative w-full h-48 md:h-full bg-black/40 rounded-2xl border flex items-center justify-center overflow-hidden" style={{ borderColor: `${category.color}20` }}>
+            {/* Grid Background */}
+            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `radial-gradient(${category.color} 1px, transparent 1px)`, backgroundSize: '16px 16px' }} />
+            
+            <SpecificVisualizer color={category.color} />
+        </div>
+    );
+};
+
+/* ─── Animated Modal Component ─── */
+const SkillModal = ({ category, onClose }) => {
+    const CatIcon = catIcons[category.icon];
+
+    // Lock body scroll when mounted
+    useEffect(() => {
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = "auto";
+        };
+    }, []);
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+
+            {/* Modal Body */}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
+                className="relative w-full max-w-4xl max-h-[85vh] md:max-h-[90vh] overflow-y-auto p-5 md:p-8 rounded-2xl md:rounded-3xl bg-[#0b0f19] border border-white/10 shadow-2xl z-10 flex flex-col md:flex-row gap-6 md:gap-8"
+                style={{
+                    boxShadow: `0 20px 60px -15px ${category.color}30`
+                }}
+            >
+                {/* Glow accent */}
+                <div 
+                    className="absolute top-0 left-0 w-full h-1" 
+                    style={{ background: `linear-gradient(90deg, transparent, ${category.color}, transparent)` }} 
+                />
+
+                {/* Left Side: Visualizer */}
+                <div className="w-full md:w-5/12 lg:w-1/3 flex-shrink-0 order-2 md:order-1 pt-2 md:pt-0">
+                    <CyberVisualizer category={category} />
+                </div>
+
+                {/* Right Side: Content */}
+                <div className="w-full md:w-7/12 lg:w-2/3 flex flex-col justify-between order-1 md:order-2">
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-8">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg"
+                                style={{ background: `${category.color}15`, border: `1px solid ${category.color}30` }}>
+                                {CatIcon(category.color)}
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-display font-bold text-white mb-1">{category.title}</h2>
+                                <p className="text-sm text-slate-400">{category.details}</p>
+                            </div>
+                        </div>
+                        
+                        <button 
+                            onClick={onClose}
+                            className="p-2 -mr-2 -mt-2 rounded-full hover:bg-white/10 text-slate-500 hover:text-white transition-colors"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+
+                    {/* Tools Chips */}
+                    <div className="mb-6">
+                        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">Arsenal Stack</h4>
+                        <div className="flex flex-wrap gap-2">
+                            {category.tools.map((tool) => {
+                                const IconFn = toolIcons[tool];
+                                return (
+                                    <span key={tool}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md"
+                                        style={{
+                                            background: `${category.color}08`,
+                                            border: `1px solid ${category.color}20`,
+                                            color: category.color,
+                                        }}
+                                    >
+                                        {IconFn && IconFn(category.color)}
+                                        {tool}
+                                    </span>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Expanded Details list */}
+                    <div className="flex-1">
+                        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Core Implementation</h4>
+                        <ul className="space-y-4">
+                            {category.extendedDetails.map((detail, idx) => (
+                                <motion.li 
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.1 + (idx * 0.1) }}
+                                    key={idx} 
+                                    className="flex items-start gap-3 text-[13px] text-slate-300 leading-relaxed"
+                                >
+                                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 shadow-md" style={{ background: category.color, boxShadow: `0 0 8px ${category.color}` }} />
+                                    {detail}
+                                </motion.li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
+/* ─── Mini Skill Card (Trigger) ─── */
+const SkillCard = ({ category, index, inView, onClick }) => {
+    const CatIcon = catIcons[category.icon];
+    
+    return (
+        <motion.div
+            onClick={onClick}
+            whileHover={{ y: -4 }}
+            whileTap={{ scale: 0.98 }}
+            className="group relative p-6 rounded-2xl cursor-pointer bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] transition-colors"
             style={{
                 opacity: inView ? 1 : 0,
                 transform: inView ? 'translateY(0) scale(1)' : 'translateY(24px) scale(0.97)',
-                transition: `all 500ms cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 80}ms`,
+            }}
+            transition={{
+                opacity: { duration: 0.5, delay: index * 0.06 },
+                transform: { duration: 0.5, delay: index * 0.06 }
             }}
         >
-            <div className="relative z-10">
-                {/* Icon + Title */}
-                <div className="flex items-center gap-3 mb-5">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110"
-                        style={{ background: `${category.color}12`, border: `1px solid ${category.color}25` }}>
-                        {CatIcon(category.color)}
+            <div className="relative z-10 flex flex-col h-full">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110"
+                            style={{ background: `${category.color}12`, border: `1px solid ${category.color}25` }}>
+                            {CatIcon(category.color)}
+                        </div>
+                        <h3 className="font-display font-bold text-white text-sm">{category.title}</h3>
                     </div>
-                    <h3 className="font-display font-bold text-white text-sm">{category.title}</h3>
+                    {/* View Details Icon */}
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 text-slate-500 group-hover:text-white transition-colors group-hover:bg-white/10">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
                 </div>
 
-                {/* Tools with individual icons */}
+                {/* Tools Preview */}
                 <div className="flex flex-wrap gap-2 mb-4">
-                    {category.tools.map((tool) => {
+                    {category.tools.slice(0, 3).map((tool) => {
                         const IconFn = toolIcons[tool];
                         return (
                             <span key={tool}
-                                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium transition-all duration-300"
+                                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium"
                                 style={{
-                                    background: `${category.color}08`,
-                                    border: `1px solid ${category.color}15`,
+                                    background: `${category.color}05`,
+                                    border: `1px solid ${category.color}10`,
                                     color: category.color,
                                 }}
                             >
@@ -201,14 +550,18 @@ const SkillCard = ({ category, index, inView }) => {
                             </span>
                         );
                     })}
+                    {category.tools.length > 3 && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-lg text-[10px] font-medium text-slate-500 bg-white/5">
+                            +{category.tools.length - 3}
+                        </span>
+                    )}
                 </div>
 
-                {/* Description */}
-                <p className="text-[11px] text-slate-500 leading-relaxed group-hover:text-slate-400 transition-colors">
+                <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2 mt-auto">
                     {category.details}
                 </p>
             </div>
-        </div>
+        </motion.div>
     );
 };
 
@@ -216,9 +569,10 @@ const SkillCard = ({ category, index, inView }) => {
 const Stack = () => {
     const [ref, inView] = useInView(0.08);
     const [certRef, certInView] = useInView(0.15);
+    const [selectedSkill, setSelectedSkill] = useState(null);
 
     return (
-        <section id="stack" className="py-24">
+        <section id="stack" className="py-24 relative">
             <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -234,13 +588,19 @@ const Stack = () => {
                 viewport={{ once: true }}
                 className="text-slate-500 text-sm mb-12 max-w-lg"
             >
-                Core competencies across offensive and defensive cybersecurity domains
+                Core competencies across offensive and defensive cybersecurity domains. Click cards to expand.
             </motion.p>
 
             {/* Skills Grid */}
             <div ref={ref} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
                 {skillCategories.map((cat, i) => (
-                    <SkillCard key={cat.title} category={cat} index={i} inView={inView} />
+                    <SkillCard 
+                        key={cat.title} 
+                        category={cat} 
+                        index={i} 
+                        inView={inView} 
+                        onClick={() => setSelectedSkill(cat)}
+                    />
                 ))}
             </div>
 
@@ -279,6 +639,16 @@ const Stack = () => {
                     ))}
                 </div>
             </div>
+
+            {/* Modal Portal & Presence */}
+            <AnimatePresence>
+                {selectedSkill && (
+                    <SkillModal 
+                        category={selectedSkill} 
+                        onClose={() => setSelectedSkill(null)} 
+                    />
+                )}
+            </AnimatePresence>
         </section>
     );
 };

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Github, FileText, Server } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 /* ─────────────────────────────────────────────
    Intersection Observer hook (no heavy libs)
@@ -247,40 +248,103 @@ const defenseLayers = [
     },
 ];
 
+/* ─── Mini Animated Visualizers for Defense Layers ─── */
+const LayerVisualizers = {
+    pfSense: ({ color }) => (
+        <div className="relative w-full h-full flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity">
+            {/* Traffic passing through a gate */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                <motion.line x1="10%" y1="50%" x2="40%" y2="50%" stroke={`${color}40`} strokeWidth="1.5" strokeDasharray="3 3" />
+                <motion.line x1="60%" y1="50%" x2="90%" y2="50%" stroke={`${color}40`} strokeWidth="1.5" strokeDasharray="3 3" />
+                <motion.line x1="50%" y1="20%" x2="50%" y2="80%" stroke={color} strokeWidth="2.5" 
+                    animate={{ scaleY: [1, 0.6, 1], opacity: [1, 0.7, 1] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }} />
+                
+                <motion.circle r="3.5" fill={color} animate={{ cx: ["10%", "90%"], cy: ["50%", "50%"] }} transition={{ duration: 2, ease: "linear", repeat: Infinity }} />
+            </svg>
+        </div>
+    ),
+    Suricata: ({ color }) => (
+        <div className="relative w-full h-full flex items-center justify-center overflow-hidden opacity-60 group-hover:opacity-100 transition-opacity">
+            <motion.div className="w-10 h-10 rounded-full border border-dashed" style={{ borderColor: color }} animate={{ rotate: 360 }} transition={{ duration: 5, ease: "linear", repeat: Infinity }} />
+            <motion.div className="absolute w-6 h-6 rounded-full border border-dotted" style={{ borderColor: color }} animate={{ rotate: -360 }} transition={{ duration: 3, ease: "linear", repeat: Infinity }} />
+            <motion.div className="absolute w-1.5 h-1.5 rounded-full" style={{ background: color }} animate={{ scale: [1, 1.8, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }} />
+        </div>
+    ),
+    'SafeLine WAF': ({ color }) => (
+        <div className="relative w-full h-full flex flex-col items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity">
+            {/* Shield block animation */}
+            <motion.div className="w-[3px] h-10 rounded-full z-10" style={{ background: color, boxShadow: `0 0 10px ${color}` }} animate={{ height: [40, 20, 40] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }} />
+            <div className="absolute inset-0 flex items-center justify-center">
+                <motion.div className="w-3 h-3 rounded-full bg-red-500 absolute" style={{ left: '20%' }} animate={{ x: [0, 25], scale: [1, 0.2], opacity: [1, 0] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeIn" }} />
+                <motion.div className="w-3 h-3 rounded-full bg-green-500 absolute" style={{ right: '20%' }} animate={{ x: [-25, 0], scale: [0.2, 1], opacity: [0, 1] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.8 }} />
+            </div>
+        </div>
+    ),
+    'Wazuh SIEM': ({ color }) => (
+        <div className="relative w-full h-full flex items-center justify-center overflow-hidden opacity-60 group-hover:opacity-100 transition-opacity">
+            {/* Radar Sweep */}
+            <motion.div className="absolute w-16 h-16 rounded-full border border-t-0 border-r-0" style={{ borderColor: color, background: `conic-gradient(from 0deg, transparent 0deg, transparent 270deg, ${color} 360deg)` }} animate={{ rotate: 360 }} transition={{ duration: 3, ease: "linear", repeat: Infinity }} />
+            <div className="absolute w-16 h-16 rounded-full border opacity-10" style={{ borderColor: color }} />
+            <div className="absolute w-8 h-8 rounded-full border opacity-20" style={{ borderColor: color }} />
+            <motion.div className="absolute w-1.5 h-1.5 rounded-full" style={{ background: color, top: '20%', left: '35%' }} animate={{ scale: [0, 2, 0], opacity: [0, 1, 0] }} transition={{ duration: 2, delay: 0.5, repeat: Infinity }} />
+            <motion.div className="absolute w-2 h-2 rounded-full" style={{ background: color, bottom: '25%', right: '30%' }} animate={{ scale: [0, 2, 0], opacity: [0, 1, 0] }} transition={{ duration: 2, delay: 1.5, repeat: Infinity }} />
+        </div>
+    ),
+};
+
 const DefenseBlock = () => {
     const [ref, inView] = useInView();
     return (
-        <section ref={ref} className="mb-28">
+        <section ref={ref} className="mb-28 overflow-hidden">
             <h2 className={`text-2xl font-display font-bold text-white mb-2 text-center transition-all duration-500 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 Defense Layers
             </h2>
             <p className={`text-slate-500 text-sm text-center mb-10 transition-all duration-500 delay-100 ${inView ? 'opacity-100' : 'opacity-0'}`}>
                 Four layers of defense stacked to protect the enterprise environment
             </p>
-            <div className="max-w-3xl mx-auto space-y-4">
+            <div className="max-w-3xl mx-auto space-y-4 px-4 overflow-visible">
                 {defenseLayers.map((layer, i) => {
+                    const Visualizer = LayerVisualizers[layer.label];
                     return (
-                        <div
+                        <motion.div
                             key={layer.label}
-                            style={{
-                                opacity: inView ? 1 : 0,
-                                transform: inView ? 'translateX(0)' : 'translateX(-80px)',
-                                transition: `all 400ms ease-out ${i * 150}ms`,
-                                borderLeft: `3px solid ${layer.color}`,
-                            }}
+                            initial={{ opacity: 0, x: -60 }}
+                            animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -60 }}
+                            transition={{ duration: 0.6, delay: i * 0.15, type: 'spring', bounce: 0.35 }}
+                            whileHover={{ scale: 1.015, x: 8 }}
+                            className="group relative cursor-pointer"
                         >
-                            <div className="flex items-center gap-4 px-6 py-5 rounded-r-xl bg-white/[0.02] border border-white/[0.06] border-l-0 backdrop-blur-sm hover:bg-white/[0.04] transition-colors">
-                                <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
-                                    style={{ background: `${layer.color}15`, border: `1px solid ${layer.color}30` }}>
+                            <div className="flex items-center gap-4 px-5 py-4 sm:px-6 sm:py-5 rounded-r-2xl bg-[#0b0f19] border border-white/5 border-l-0 overflow-hidden relative z-10"
+                                style={{
+                                    borderLeft: `4px solid ${layer.color}`,
+                                    boxShadow: `0 8px 30px -15px ${layer.color}30`
+                                }}
+                            >
+                                {/* Background hover glow */}
+                                <div className="absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-300 pointer-events-none" style={{ background: layer.color }} />
+
+                                {/* Left Icon */}
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110"
+                                    style={{ background: `${layer.color}15`, border: `1px solid ${layer.color}30`, boxShadow: `0 0 15px ${layer.color}10` }}>
                                     {layer.icon(layer.color)}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-display font-bold text-white text-sm mb-0.5">{layer.label}</h3>
-                                    <p className="text-slate-400 text-xs">{layer.desc}</p>
+
+                                {/* Text Content */}
+                                <div className="flex-1 min-w-0 relative z-10 py-1">
+                                    <h3 className="font-display font-bold text-white text-sm md:text-base mb-0.5 transition-colors duration-300">
+                                        {layer.label}
+                                    </h3>
+                                    <p className="text-slate-400 text-[11px] sm:text-xs leading-relaxed">{layer.desc}</p>
                                 </div>
-                                <div className="w-2.5 h-2.5 rounded-full shrink-0 soc-pulse-dot" style={{ background: layer.color }} />
+
+                                {/* Visualizer Block */}
+                                <div className="w-20 h-12 sm:w-28 sm:h-16 shrink-0 rounded-lg bg-black/60 border border-white/[0.03] relative overflow-hidden transition-all duration-300 group-hover:border-white/10 group-hover:bg-black/80">
+                                    {/* Gradient overlay to blend left side */}
+                                    <div className="absolute top-0 left-0 w-8 h-full z-10 bg-gradient-to-r from-black/80 to-transparent pointer-events-none" />
+                                    {Visualizer && <Visualizer color={layer.color} />}
+                                </div>
                             </div>
-                        </div>
+                        </motion.div>
                     );
                 })}
             </div>
