@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { blogPosts } from '../data/blogPosts';
-import { Clock, Tag, ArrowRight } from 'lucide-react';
+import { Clock, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Blog = () => {
@@ -25,8 +25,9 @@ const Blog = () => {
                     <motion.div
                         key={post.id}
                         initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-50px" }}
+                        transition={{ delay: index * 0.05 }}
                     >
                         <Link to={`/blog/${post.id}`} className="card-wrapper group block h-full">
                             <div className="card-content p-6 flex flex-col h-full bg-slate-950/50 border border-white/5 hover:border-cyan-500/30 transition-colors">

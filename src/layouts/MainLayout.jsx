@@ -1,13 +1,17 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import AIModal from '../components/AIModal';
 import { Toaster } from 'react-hot-toast';
 
 const MainLayout = ({ children }) => {
     const spotlightRef = useRef(null);
+    const rafIdRef = useRef(null);
 
-    useEffect(() => {
-        const handleMouseMove = (e) => {
+    // Throttled mousemove with requestAnimationFrame to avoid DOM thrashing
+    const handleMouseMove = useCallback((e) => {
+        if (rafIdRef.current) return; // Skip if a frame is already scheduled
+
+        rafIdRef.current = requestAnimationFrame(() => {
             const x = e.clientX;
             const y = e.clientY;
 
@@ -18,18 +22,28 @@ const MainLayout = ({ children }) => {
             }
 
             // Update Card Borders
-            document.querySelectorAll('.card-wrapper').forEach(card => {
-                const rect = card.getBoundingClientRect();
-                const cardX = x - rect.left;
-                const cardY = y - rect.top;
-                card.style.setProperty('--mouse-x', `${cardX}px`);
-                card.style.setProperty('--mouse-y', `${cardY}px`);
-            });
-        };
+            const cards = document.querySelectorAll('.card-wrapper');
+            for (let i = 0; i < cards.length; i++) {
+                const rect = cards[i].getBoundingClientRect();
+                cards[i].style.setProperty('--mouse-x', `${x - rect.left}px`);
+                cards[i].style.setProperty('--mouse-y', `${y - rect.top}px`);
+            }
 
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
+            rafIdRef.current = null;
+        });
     }, []);
+
+    useEffect(() => {
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+        };
+    }, [handleMouseMove]);
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 relative">
@@ -58,9 +72,14 @@ const MainLayout = ({ children }) => {
 
             <footer className="border-t border-white/5 py-8 bg-black relative z-10">
                 <div className="max-w-7xl mx-auto px-6 flex justify-between items-center text-xs text-slate-600">
-                    <p>© 2025 Nisha Sorallikar.</p>
+                    <p>© {new Date().getFullYear()} Nisha Sorallikar.</p>
                     <div className="flex gap-4">
-                        <a href="#" className="hover:text-cyan-400 transition-colors">Top</a>
+                        <button
+                            onClick={scrollToTop}
+                            className="hover:text-cyan-400 transition-colors cursor-pointer"
+                        >
+                            Top ↑
+                        </button>
                     </div>
                 </div>
             </footer>

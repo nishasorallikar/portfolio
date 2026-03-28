@@ -1,11 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 
 const Navbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     const handleNavigation = (id) => {
+        setMobileOpen(false);
         if (location.pathname !== '/') {
             navigate('/', { state: { targetId: id } });
         } else {
@@ -22,11 +25,15 @@ const Navbar = () => {
         if (location.pathname === '/' && location.state?.targetId) {
             setTimeout(() => {
                 scrollToSection(location.state.targetId);
-                // Clear state so it doesn't persist on refresh
                 window.history.replaceState({}, document.title);
             }, 100);
         }
     }, [location]);
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        setMobileOpen(false);
+    }, [location.pathname]);
 
     return (
         <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-4xl bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3 flex items-center justify-between">
@@ -35,6 +42,7 @@ const Navbar = () => {
                 Nisha<span className="text-slate-500">.sec</span>
             </Link>
 
+            {/* Desktop Links */}
             <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
                 <button onClick={() => handleNavigation('work')} className="hover:text-white transition-colors">Work</button>
                 <Link to="/blog" className="hover:text-white transition-colors">Blog</Link>
@@ -44,6 +52,34 @@ const Navbar = () => {
             <button onClick={() => handleNavigation('contact')} className="hidden md:block text-xs font-semibold bg-white text-black px-4 py-2 rounded-full hover:bg-slate-200 transition-colors">
                 Contact
             </button>
+
+            {/* Mobile Hamburger */}
+            <button
+                onClick={() => setMobileOpen(!mobileOpen)}
+                className="md:hidden text-slate-300 hover:text-white transition-colors"
+                aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            >
+                {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+
+            {/* Mobile Dropdown */}
+            {mobileOpen && (
+                <div className="absolute top-full left-0 right-0 mt-3 bg-slate-950/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-4 md:hidden animate-fade-in-up shadow-2xl">
+                    <button onClick={() => handleNavigation('work')} className="text-left text-slate-300 hover:text-cyan-400 transition-colors font-medium py-2">
+                        Work
+                    </button>
+                    <Link to="/blog" onClick={() => setMobileOpen(false)} className="text-slate-300 hover:text-cyan-400 transition-colors font-medium py-2">
+                        Blog
+                    </Link>
+                    <button onClick={() => handleNavigation('about')} className="text-left text-slate-300 hover:text-cyan-400 transition-colors font-medium py-2">
+                        About
+                    </button>
+                    <hr className="border-white/10" />
+                    <button onClick={() => handleNavigation('contact')} className="text-xs font-semibold bg-white text-black px-4 py-2 rounded-full hover:bg-slate-200 transition-colors w-full">
+                        Contact
+                    </button>
+                </div>
+            )}
         </nav>
     );
 };

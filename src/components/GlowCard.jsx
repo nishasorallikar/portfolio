@@ -1,9 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { cn } from '../lib/utils';
 
 const GlowCard = ({ children, className, ...props }) => {
     const divRef = useRef(null);
-    const [position, setPosition] = useState({ x: 0, y: 0 });
 
     const handleMouseMove = (e) => {
         if (!divRef.current) return;

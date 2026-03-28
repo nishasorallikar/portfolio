@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+/* Fonts are now loaded via index.html <link> tags for better performance */
 @import "tailwindcss";
 
 @theme {
@@ -12,6 +12,11 @@
 @layer base {
     body {
         @apply font-sans antialiased overflow-x-hidden selection:bg-cyan-500 selection:text-white bg-slate-950 text-slate-200;
+    }
+    
+    /* Smooth scrolling globally */
+    html {
+        scroll-behavior: smooth;
     }
 }
 
@@ -166,4 +171,118 @@
 
 .typing-dot:nth-child(2) {
     animation-delay: -0.16s;
+}
+
+/* Typing animation keyframe */
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+/* Custom scrollbar for chat */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Section fade-in animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* ═══════════════════════════════════════════════
+   SOC Lab Project — Animations
+   ═══════════════════════════════════════════════ */
+
+/* Fade in + slide up entrance */
+.soc-fade-in {
+    animation: socFadeIn 400ms ease-out forwards;
+}
+
+@keyframes socFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pulsing dot (status indicators) */
+.soc-pulse-dot {
+    animation: socPulseDot 2s infinite ease-in-out;
+}
+
+@keyframes socPulseDot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.7; }
+}
+
+/* Pulsing ring (pfSense node) */
+.soc-pulse-ring {
+    animation: socPulseRing 2s infinite ease-in-out;
+}
+
+@keyframes socPulseRing {
+    0%, 100% { r: 28; opacity: 0.2; }
+    50% { r: 34; opacity: 0.05; }
+}
+
+/* Glow effects on animated dots */
+.soc-glow-red {
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.7));
+}
+
+.soc-glow-cyan {
+    filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.7));
+}
+
+/* Defense bar left accent border */
+.soc-defense-bar {
+    border-left: 3px solid transparent;
+    border-radius: 0.75rem;
+}
+
+/* ═══════════════════════════════════════════════
+   Reduced Motion — disable all SOC Lab animations
+   ═══════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+    .soc-fade-in,
+    .soc-pulse-dot,
+    .soc-pulse-ring,
+    .animate-fade-in-up {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .soc-defense-bar {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+
+    svg animateMotion,
+    svg animate {
+        display: none;
+    }
 }

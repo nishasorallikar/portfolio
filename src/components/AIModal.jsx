@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Terminal, X, Send, User, Bot, Sparkles } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { Terminal, X, Send, Bot } from 'lucide-react';
 
 const AIModal = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -33,13 +32,9 @@ const AIModal = () => {
         setInput('');
         setIsLoading(true);
 
-        // Simulate API call or Real Call logic could go here
-        // For portability, we'll keep the mock logic or simple prompt logic
         try {
-            // Simulating network delay
             await new Promise(r => setTimeout(r, 1000));
 
-            // Simple keyword matching for demo purposes (robust prompt logic is server-side usually)
             let response = "I primarily focus on cybersecurity. Could you be more specific?";
             const lower = userMsg.toLowerCase();
 
@@ -51,6 +46,12 @@ const AIModal = () => {
                 response = "She is currently a **Cybersecurity Intern** at Red Team Hacker Academy, handling VAPT and SOC monitoring.";
             } else if (lower.includes('skill')) {
                 response = "Her technical arsenal includes **Splunk**, **Wireshark**, **Burp Suite**, **Nmap**, and cloud security (AWS/Azure).";
+            } else if (lower.includes('education') || lower.includes('degree') || lower.includes('college')) {
+                response = "Nisha holds a **Bachelor's in Computer Application** from Karnatak Arts, Science & Commerce College.";
+            } else if (lower.includes('certif') || lower.includes('course')) {
+                response = "She's actively learning through platforms like **TryHackMe** and **Blue Team Labs Online (BTLO)**, with expertise in Splunk and Elastic Stack.";
+            } else if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey')) {
+                response = "Hello! 👋 How can I help you learn about Nisha's cybersecurity experience?";
             }
 
             setMessages(prev => [...prev, { type: 'bot', text: response }]);
@@ -66,13 +67,18 @@ const AIModal = () => {
             {/* Floating Action Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-cyan-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-cyan-500 transition-all hover:scale-110 animate-pulse-glow"
+                className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-cyan-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-cyan-500 transition-all hover:scale-110 animate-pulse-glow cursor-pointer"
+                aria-label="Open AI assistant chat"
             >
                 <Bot size={24} />
             </button>
 
             {/* Modal */}
-            <div className={`fixed bottom-24 right-8 w-[90%] max-w-[400px] h-[500px] bg-slate-950/95 backdrop-blur-md border border-white/10 rounded-2xl z-40 flex flex-col shadow-2xl transition-all duration-300 transform origin-bottom-right ${isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-90 opacity-0 translate-y-10 pointer-events-none'}`}>
+            <div
+                className={`fixed bottom-24 right-8 w-[90%] max-w-[400px] h-[500px] bg-slate-950/95 backdrop-blur-md border border-white/10 rounded-2xl z-40 flex flex-col shadow-2xl transition-all duration-300 transform origin-bottom-right ${isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-90 opacity-0 translate-y-10 pointer-events-none'}`}
+                role="dialog"
+                aria-label="AI Assistant"
+            >
 
                 {/* Header */}
                 <div className="p-4 border-b border-white/10 flex justify-between items-center bg-black/40 rounded-t-2xl">
@@ -80,7 +86,11 @@ const AIModal = () => {
                         <Terminal size={14} className="text-cyan-400" />
                         <span className="text-sm font-mono text-slate-300">nisha_ai_assistant.exe</span>
                     </div>
-                    <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-white transition-colors">
+                    <button
+                        onClick={() => setIsOpen(false)}
+                        className="text-slate-500 hover:text-white transition-colors cursor-pointer"
+                        aria-label="Close AI assistant"
+                    >
                         <X size={18} />
                     </button>
                 </div>
@@ -89,7 +99,6 @@ const AIModal = () => {
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-sm custom-scrollbar">
                     {messages.map((msg, idx) => (
                         <div key={idx} className={`p-3 rounded-lg max-w-[85%] ${msg.type === 'user' ? 'bg-cyan-400/10 border border-cyan-400/20 text-cyan-100 self-end ml-auto' : 'bg-white/5 border border-white/10 text-slate-200 self-start'}`}>
-                            {/* Simple bold parsing */}
                             <p dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }} />
                         </div>
                     ))}
@@ -113,8 +122,9 @@ const AIModal = () => {
                             onChange={(e) => setInput(e.target.value)}
                             placeholder="Type a command..."
                             className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 text-sm focus:border-cyan-500 outline-none transition-colors"
+                            aria-label="Message input"
                         />
-                        <button type="submit" className="text-cyan-400 hover:text-white px-2 transition-colors">
+                        <button type="submit" className="text-cyan-400 hover:text-white px-2 transition-colors cursor-pointer" aria-label="Send message">
                             <Send size={18} />
                         </button>
                     </form>

@@ -23,7 +23,7 @@ const About = () => {
                 <div className="relative pl-10 group opacity-70 hover:opacity-100 transition-opacity">
                     <div className="absolute -left-[5px] top-2 w-2.5 h-2.5 rounded-full bg-slate-700"></div>
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-2">
-                        <h3 className="text-lg font-bold text-slate-300">Bachelor’s in Computer Application</h3>
+                        <h3 className="text-lg font-bold text-slate-300">Bachelor's in Computer Application</h3>
                         <span className="font-mono text-xs text-slate-600">Graduated</span>
                     </div>
                     <div className="text-slate-500 text-sm font-medium mb-4">Karnatak Arts, Science & Commerce College</div>
@@ -36,12 +36,14 @@ const About = () => {
 const Contact = () => {
     const [msg, setMsg] = useState('');
     const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
     const [isDrafting, setIsDrafting] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
         toast.success('Message sent (Demo)!');
         setName('');
+        setEmail('');
         setMsg('');
     };
 
@@ -85,7 +87,7 @@ const Contact = () => {
                             </div>
                         </a>
 
-                        <a href="https://linkedin.com/in/nisha-sorallikar" target="_blank" className="flex items-center gap-4 text-slate-300 hover:text-cyan-400 transition-colors group">
+                        <a href="https://linkedin.com/in/nisha-sorallikar" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-slate-300 hover:text-cyan-400 transition-colors group">
                             <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center group-hover:border-cyan-500/50 transition-colors">
                                 <Linkedin size={18} />
                             </div>
@@ -101,7 +103,7 @@ const Contact = () => {
                             </div>
                             <div>
                                 <span className="block text-xs uppercase tracking-wider text-slate-500 font-semibold mb-0.5">Phone</span>
-                                <span class="text-lg font-medium">+91 87928 03740</span>
+                                <span className="text-lg font-medium">+91 87928 03740</span>
                             </div>
                         </a>
                     </div>
@@ -112,8 +114,9 @@ const Contact = () => {
                     <div className="card-content p-8">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
-                                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Name</label>
+                                <label htmlFor="contact-name" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Name</label>
                                 <input
+                                    id="contact-name"
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
@@ -123,22 +126,31 @@ const Contact = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Email</label>
-                                <input type="email" placeholder="jane@company.com" className="form-input" required />
+                                <label htmlFor="contact-email" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Email</label>
+                                <input
+                                    id="contact-email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="jane@company.com"
+                                    className="form-input"
+                                    required
+                                />
                             </div>
                             <div>
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Message</label>
+                                    <label htmlFor="contact-message" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Message</label>
                                     <button
                                         type="button"
                                         onClick={generateDraft}
                                         disabled={isDrafting}
-                                        className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 disabled:opacity-50"
+                                        className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 disabled:opacity-50 cursor-pointer"
                                     >
                                         <Sparkles size={12} /> ✨ Draft with AI
                                     </button>
                                 </div>
                                 <textarea
+                                    id="contact-message"
                                     rows="4"
                                     value={msg}
                                     onChange={(e) => setMsg(e.target.value)}
