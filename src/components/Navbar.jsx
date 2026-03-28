@@ -40,7 +40,7 @@ const Navbar = () => {
             initial={{ y: -100, opacity: 0, x: "-50%" }} 
             animate={{ y: 0, opacity: 1, x: "-50%" }} 
             transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
-            className="fixed top-6 left-1/2 z-50 w-[90%] max-w-4xl bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3 flex items-center justify-between"
+            className="fixed top-4 md:top-6 left-1/2 z-50 w-[92%] md:w-[90%] max-w-4xl bg-[#0b0f19]/85 md:bg-[#0b0f19]/70 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-full px-5 py-3.5 md:px-6 md:py-3 flex items-center justify-between shadow-2xl shadow-black/50"
         >
             <Link to="/" className="font-display font-bold text-lg tracking-tight flex items-center gap-2 hover:text-cyan-400 transition-colors">
                 <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]"></div>
