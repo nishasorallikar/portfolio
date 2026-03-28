@@ -2,7 +2,6 @@
 
 A high-performance, interactive portfolio website tailored for a Cybersecurity Professional / SOC Analyst. Built with a "defense-in-depth" aesthetic, featuring glassmorphism UI, real-time command-line animations, and advanced Framer Motion interactions.
 
-![SOC Lab Full Architecture & Documentation](public/soc-lab-documentation.png)
 
 ## 🚀 Core Features & Technical Engineering
 
