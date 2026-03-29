@@ -2,7 +2,6 @@
 
 A high-performance, interactive portfolio website tailored for a Cybersecurity Professional / SOC Analyst. Built with a "defense-in-depth" aesthetic, featuring glassmorphism UI, real-time command-line animations, and advanced Framer Motion interactions.
 
-![SOC Lab Full Architecture & Documentation](public/soc-lab-documentation.png)
 
 ## 🚀 Core Features & Technical Engineering
 
@@ -40,7 +39,6 @@ Integrated an interactive chat modal component acting as a pseudo-assistant, con
 
 Built directly into the portfolio is a highly detailed, interactive case study of a virtualized SOC environment (`/project/soc-lab`).
 
-![SOC Lab Full Architecture & Documentation](./public/soc-lab-documentation.png)
 
 ### Lab Architecture & Objectives
 - **Objective:** Simulate a multi-zone enterprise network, implement segmentation via pfSense, deploy Suricata IDS & SafeLine WAF, and centralize logs with Wazuh SIEM.
