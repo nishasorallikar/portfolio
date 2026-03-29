@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Server } from 'lucide-react';
+import { ArrowRight, Server, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
@@ -73,6 +73,73 @@ const Work = () => {
                                         <circle r="3" fill="#ef4444" opacity="0.8" style={{ filter: 'drop-shadow(0 0 4px rgba(239,68,68,0.6))' }}>
                                             <animateMotion dur="3s" repeatCount="indefinite" path="M 150 170 L 150 30 L 250 110" calcMode="linear" />
                                         </circle>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+                </motion.div>
+
+                {/* CSA v2 Course Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.15 }}
+                >
+                    <Link to="/csa" className="card-wrapper group block cursor-pointer">
+                        <div className="card-content p-8 relative overflow-hidden bg-slate-900 border border-slate-800 rounded-xl">
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/5"></div>
+                            <div className="absolute top-0 right-0 p-8 opacity-10">
+                                <Shield size={140} className="text-indigo-400 transform rotate-12" />
+                            </div>
+
+                            <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+                                <div>
+                                    <div className="flex gap-2 mb-4 flex-wrap">
+                                        <span className="px-2 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs rounded">Course Engine</span>
+                                        <span className="px-2 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs rounded">Interactive</span>
+                                    </div>
+                                    <h3 className="text-2xl font-display font-bold mb-3 text-white group-hover:text-indigo-400 transition-colors">
+                                        EC-Council CSA v2 Interactive Course
+                                    </h3>
+                                    <p className="text-slate-400 text-sm mb-5 max-w-md leading-relaxed">
+                                        A fully fledged interactive module dashboard with Framer Motion animations, comprehensive study materials, and a 100-question practice exam engine.
+                                    </p>
+                                    <div className="flex flex-wrap gap-2 mb-6">
+                                        {['React', 'Framer Motion', 'TailwindCSS', 'Security Ops', 'Incident Response'].map(tag => (
+                                            <span key={tag} className="px-2.5 py-1 bg-slate-800/80 rounded border border-white/5 text-[10px] text-slate-300 group-hover:border-indigo-500/20 transition-colors">
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <span className="text-indigo-400 text-sm font-semibold flex items-center gap-2">
+                                        Launch Course Platform <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                                    </span>
+                                </div>
+
+                                <div className="hidden md:block">
+                                    <svg viewBox="0 0 300 200" className="w-full h-auto max-w-[280px] ml-auto opacity-70 group-hover:opacity-100 transition-opacity" xmlns="http://www.w3.org/2000/svg">
+                                        {/* Animated Terminal visual */}
+                                        <rect x="20" y="30" width="260" height="140" rx="8" fill="#0f172a" stroke="#6366f1" strokeWidth="1.5" opacity="0.8" />
+                                        <circle cx="40" cy="45" r="4" fill="#ef4444" />
+                                        <circle cx="55" cy="45" r="4" fill="#eab308" />
+                                        <circle cx="70" cy="45" r="4" fill="#22c55e" />
+                                        
+                                        <line x1="20" y1="60" x2="280" y2="60" stroke="#6366f1" strokeWidth="1" opacity="0.3" />
+                                        
+                                        <text x="40" y="85" style={{ fontSize: 10, fill: '#818cf8', fontFamily: "'Space Grotesk', monospace" }}>$ init csa_v2 --modules 8</text>
+                                        
+                                        <rect x="40" y="105" width="200" height="4" rx="2" fill="#1e293b" />
+                                        <rect x="40" y="105" width="140" height="4" rx="2" fill="#10b981">
+                                            <animate attributeName="width" values="10;140;140" dur="2s" repeatCount="indefinite" />
+                                        </rect>
+                                        
+                                        <text x="40" y="135" style={{ fontSize: 9, fill: '#64748b', fontFamily: "'Space Grotesk', monospace" }}>[OK] Threat Intelligence Loaded</text>
+                                        <text x="40" y="150" style={{ fontSize: 9, fill: '#64748b', fontFamily: "'Space Grotesk', monospace" }}>[OK] Incident Response Protocols Synchronized</text>
+                                        <rect x="235" y="142" width="6" height="10" fill="#a5b4fc">
+                                            <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite" />
+                                        </rect>
                                     </svg>
                                 </div>
                             </div>

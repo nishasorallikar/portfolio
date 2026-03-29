@@ -1,0 +1,191 @@
+const csaModulesData = [
+  {
+    id: "module-01",
+    number: "01",
+    title: "Security Operations and Management",
+    slug: "module-01",
+    accent: "emerald",
+    badge: "SOC Commander",
+    badgeIcon: "Shield",
+    sections: 6,
+    topics: [
+      "Principles of Security Management",
+      "SOC Importance, Capabilities and Functions",
+      "SOC Workflow and People/Processes/Technologies",
+      "SOC Models and Advantages/Disadvantages",
+      "SOC Maturity Models and Evolution",
+      "KPIs, Challenges and Best Practices"
+    ],
+    description: "Master the foundations of security operations — from CIA triad principles to SOC maturity models, KPIs, and best practices for running an effective security operations center.",
+    estimatedTime: "4-5 hours",
+    difficulty: "Beginner",
+    route: "/csa/module-01"
+  },
+  {
+    id: "module-02",
+    number: "02",
+    title: "Understanding Cyber Threats, IoCs, and Attack Methodology",
+    slug: "module-02",
+    accent: "red",
+    badge: "Threat Analyst",
+    badgeIcon: "Crosshair",
+    sections: 9,
+    topics: [
+      "Cyber Threats and Their Impact",
+      "Network Attack TTPs",
+      "Host Attack TTPs",
+      "Application Attack TTPs",
+      "Social Engineering TTPs",
+      "Email Attack TTPs",
+      "Insider Attack TTPs",
+      "Indicators of Compromise (IoCs)",
+      "Attacker Hacking Methodology"
+    ],
+    description: "Deep dive into the full threat landscape — from nation-state actors to insider threats, covering all attack TTPs across network, host, application, and social engineering vectors.",
+    estimatedTime: "6-7 hours",
+    difficulty: "Intermediate",
+    route: "/csa/module-02"
+  },
+  {
+    id: "module-03",
+    number: "03",
+    title: "Log Management",
+    slug: "module-03",
+    accent: "cyan",
+    badge: "Log Warden",
+    badgeIcon: "Database",
+    sections: 5,
+    topics: [
+      "Log Management Importance and Approaches",
+      "Local Logging: Windows, Linux and Mac",
+      "Local Logging: Firewall and Router Logs",
+      "Local Logging: Web Server, Database and Email Logs",
+      "Centralized Logging"
+    ],
+    description: "Master log collection, normalization, and centralization across Windows, Linux, macOS, firewalls, web servers, and databases — the foundation of every SOC investigation.",
+    estimatedTime: "3-4 hours",
+    difficulty: "Beginner",
+    route: "/csa/module-03"
+  },
+  {
+    id: "module-04",
+    number: "04",
+    title: "Incident Detection and Triage",
+    slug: "module-04",
+    accent: "blue",
+    badge: "SIEM Operator",
+    badgeIcon: "Radio",
+    sections: 8,
+    topics: [
+      "SIEM Architecture and Importance",
+      "Types of SIEM Solutions",
+      "SIEM Deployment",
+      "SIEM Use Case Management",
+      "Incident Detection with SIEM",
+      "AI for SIEM Rule Generation",
+      "Alert Triaging and Analysis",
+      "Visualization, Dashboard Management and SOC Reports"
+    ],
+    description: "Learn to deploy, configure and operate SIEM platforms for real-time incident detection, alert triage, and SOC dashboard management including AI-assisted rule generation.",
+    estimatedTime: "5-6 hours",
+    difficulty: "Intermediate",
+    route: "/csa/module-04"
+  },
+  {
+    id: "module-05",
+    number: "05",
+    title: "Proactive Threat Detection",
+    slug: "module-05",
+    accent: "purple",
+    badge: "Threat Hunter",
+    badgeIcon: "Crosshair",
+    sections: 9,
+    topics: [
+      "Fundamental Concepts of Threat Intelligence",
+      "Types and Strategies of Threat Intelligence",
+      "Threat Intelligence Sources",
+      "Threat Intelligence Platforms (TIP)",
+      "Threat Intelligence-Driven SOC",
+      "TI Use Cases for Incident Response",
+      "Threat Hunting and Its Significance",
+      "Threat Hunting Frameworks",
+      "Threat Hunting with PowerShell, YARA and Tools"
+    ],
+    description: "Go beyond reactive detection — build a threat intelligence program, deploy TI platforms, and conduct hypothesis-driven threat hunts using PowerShell, YARA, and industry frameworks.",
+    estimatedTime: "6-7 hours",
+    difficulty: "Advanced",
+    route: "/csa/module-05"
+  },
+  {
+    id: "module-06",
+    number: "06",
+    title: "Incident Response",
+    slug: "module-06",
+    accent: "rose",
+    badge: "Incident Responder",
+    badgeIcon: "AlertCircle",
+    sections: 10,
+    topics: [
+      "Incident Response Overview",
+      "IR Process Phases",
+      "Responding to Network Security Incidents",
+      "Responding to Application Security Incidents",
+      "Responding to Email Security Incidents",
+      "Responding to Insider Incidents",
+      "Responding to Malware Incidents",
+      "SOC Playbooks in Incident Response",
+      "EDR/XDR Enhanced Incident Response",
+      "Automated IR with SOAR"
+    ],
+    description: "Execute the full incident response lifecycle — from preparation and detection through containment, eradication, recovery, and post-incident review across all incident types.",
+    estimatedTime: "7-8 hours",
+    difficulty: "Advanced",
+    route: "/csa/module-06"
+  },
+  {
+    id: "module-07",
+    number: "07",
+    title: "Forensic Investigation and Malware Analysis",
+    slug: "module-07",
+    accent: "teal",
+    badge: "Digital Forensicator",
+    badgeIcon: "Fingerprint",
+    sections: 8,
+    topics: [
+      "Forensic Investigation Fundamentals",
+      "Investigating Network Security Incidents",
+      "Investigating Application Security Incidents",
+      "Investigating Email Security Incidents",
+      "Investigating Insider Incidents",
+      "Malware Analysis Types, Stages and Methods",
+      "Static Malware Analysis",
+      "Dynamic Malware Analysis"
+    ],
+    description: "Conduct digital forensic investigations and perform static and dynamic malware analysis — from chain of custody and evidence collection to sandbox detonation and reverse engineering.",
+    estimatedTime: "6-7 hours",
+    difficulty: "Advanced",
+    route: "/csa/module-07"
+  },
+  {
+    id: "module-08",
+    number: "08",
+    title: "SOC for Cloud Environments",
+    slug: "module-08",
+    accent: "sky",
+    badge: "Cloud SOC Architect",
+    badgeIcon: "Cloud",
+    sections: 4,
+    topics: [
+      "Cloud SOC Fundamentals and Shared Responsibility",
+      "Azure SOC: Microsoft Sentinel and Security Tools",
+      "AWS SOC: Security Hub and Security Tools",
+      "GCP SOC: Chronicle SIEM and Security Command Center"
+    ],
+    description: "Architect and operate SOC capabilities for AWS, Azure, and GCP — covering cloud-native logging, SIEM platforms (Sentinel, Chronicle), Security Hub, and cloud-specific detection strategies.",
+    estimatedTime: "5-6 hours",
+    difficulty: "Advanced",
+    route: "/csa/module-08"
+  }
+];
+
+export default csaModulesData;
