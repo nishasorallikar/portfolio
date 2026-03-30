@@ -9,17 +9,17 @@ const BlogPost = lazy(() => import('./pages/BlogPost'));
 const SOCLabProject = lazy(() => import('./pages/SOCLabProject'));
 
 import CSACourseLayout from './layouts/CSACourseLayout';
-import CSADashboard from './pages/csa/CSADashboard';
-import CSAModuleDetails from './pages/csa/CSAModuleDetails';
-import CSAPracticeExam from './pages/csa/CSAPracticeExam';
-import CSAModule01 from './pages/csa/CSAModule01';
-import CSAModule02 from './pages/csa/CSAModule02';
-import CSAModule03 from './pages/csa/CSAModule03';
-import CSAModule04 from './pages/csa/CSAModule04';
-import CSAModule05 from './pages/csa/CSAModule05';
-import CSAModule06 from './pages/csa/CSAModule06';
-import CSAModule07 from './pages/csa/CSAModule07';
-import CSAModule08 from './pages/csa/CSAModule08';
+const CSADashboard = lazy(() => import('./pages/csa/CSADashboard'));
+const CSAModuleDetails = lazy(() => import('./pages/csa/CSAModuleDetails'));
+const CSAPracticeExam = lazy(() => import('./pages/csa/CSAPracticeExam'));
+const CSAModule01 = lazy(() => import('./pages/csa/CSAModule01'));
+const CSAModule02 = lazy(() => import('./pages/csa/CSAModule02'));
+const CSAModule03 = lazy(() => import('./pages/csa/CSAModule03'));
+const CSAModule04 = lazy(() => import('./pages/csa/CSAModule04'));
+const CSAModule05 = lazy(() => import('./pages/csa/CSAModule05'));
+const CSAModule06 = lazy(() => import('./pages/csa/CSAModule06'));
+const CSAModule07 = lazy(() => import('./pages/csa/CSAModule07'));
+const CSAModule08 = lazy(() => import('./pages/csa/CSAModule08'));
 
 const PageLoader = () => (
     <div className="flex items-center justify-center min-h-[50vh]">
@@ -52,17 +52,17 @@ function App() {
                     </Suspense>
                 </MainLayout>
             } />
-            <Route path="/csa" element={<CSACourseLayout><CSADashboard /></CSACourseLayout>} />
-            <Route path="/csa/module-01" element={<CSACourseLayout><CSAModule01 /></CSACourseLayout>} />
-            <Route path="/csa/module-02" element={<CSACourseLayout><CSAModule02 /></CSACourseLayout>} />
-            <Route path="/csa/module-03" element={<CSACourseLayout><CSAModule03 /></CSACourseLayout>} />
-            <Route path="/csa/module-04" element={<CSACourseLayout><CSAModule04 /></CSACourseLayout>} />
-            <Route path="/csa/module-05" element={<CSACourseLayout><CSAModule05 /></CSACourseLayout>} />
-            <Route path="/csa/module-06" element={<CSACourseLayout><CSAModule06 /></CSACourseLayout>} />
-            <Route path="/csa/module-07" element={<CSACourseLayout><CSAModule07 /></CSACourseLayout>} />
-            <Route path="/csa/module-08" element={<CSACourseLayout><CSAModule08 /></CSACourseLayout>} />
-            <Route path="/csa/module/:moduleId" element={<CSACourseLayout><CSAModuleDetails /></CSACourseLayout>} />
-            <Route path="/csa/practice-exam" element={<CSACourseLayout><CSAPracticeExam /></CSACourseLayout>} />
+            <Route path="/csa" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSADashboard /></Suspense></CSACourseLayout>} />
+            <Route path="/csa/module-01" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSAModule01 /></Suspense></CSACourseLayout>} />
+            <Route path="/csa/module-02" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSAModule02 /></Suspense></CSACourseLayout>} />
+            <Route path="/csa/module-03" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSAModule03 /></Suspense></CSACourseLayout>} />
+            <Route path="/csa/module-04" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSAModule04 /></Suspense></CSACourseLayout>} />
+            <Route path="/csa/module-05" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSAModule05 /></Suspense></CSACourseLayout>} />
+            <Route path="/csa/module-06" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSAModule06 /></Suspense></CSACourseLayout>} />
+            <Route path="/csa/module-07" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSAModule07 /></Suspense></CSACourseLayout>} />
+            <Route path="/csa/module-08" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSAModule08 /></Suspense></CSACourseLayout>} />
+            <Route path="/csa/module/:moduleId" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSAModuleDetails /></Suspense></CSACourseLayout>} />
+            <Route path="/csa/practice-exam" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSAPracticeExam /></Suspense></CSACourseLayout>} />
         </Routes>
     );
 }
