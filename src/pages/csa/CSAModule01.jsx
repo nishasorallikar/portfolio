@@ -5,6 +5,7 @@ import {
   ChevronDown, ChevronRight, AlertTriangle, Check, Users, Monitor, Server, FileText, Globe, X,
   BookOpen, ClipboardList, AlertCircle, Building2, Terminal
 } from 'lucide-react';
+import ProgressHexagon from '../../components/ProgressHexagon';
 
 const TABS = [
   "Security Management Principles",
@@ -316,31 +317,7 @@ export default function CSAModule01() {
     <div className="min-h-screen bg-black font-sans selection:bg-cyan-400/30 selection:text-cyan-400">
       
       {/* Progress Hexagon */}
-      <div className="fixed top-3 right-3 sm:top-6 sm:right-6 z-40 flex flex-col items-center">
-          <svg viewBox="0 0 80 92" className="w-9 h-11 sm:w-12 sm:h-14 overflow-visible">
-            <defs>
-              <clipPath id="hexProgressClip">
-                <polygon points="40,2 78,22 78,62 40,82 2,62 2,22" />
-              </clipPath>
-            </defs>
-            <polygon points="40,2 78,22 78,62 40,82 2,62 2,22" stroke="#1e293b" strokeWidth="2" fill="#020617" />
-            <g clipPath="url(#hexProgressClip)">
-              <motion.rect 
-                x="0" 
-                width="80" 
-                fill="#22d3ee" 
-                initial={{ y: 92, height: 0 }}
-                animate={{ 
-                  y: 92 - (completedSections.size / 6) * 92, 
-                  height: (completedSections.size / 6) * 92 
-                }}
-                transition={{ type: "spring", damping: 20 }}
-              />
-            </g>
-            <polygon points="40,2 78,22 78,62 40,82 2,62 2,22" stroke="#22d3ee" strokeWidth="2" fill="none" opacity="0.6" />
-          </svg>
-          <div className="text-cyan-400 font-bold text-[10px] sm:text-xs mt-1 sm:mt-2 text-center shadow-cyan-400/20">{completedSections.size}/6 Complete</div>
-        </div>
+      <ProgressHexagon current={completedSections.size} total={6} />
 
         {/* Badge Overlay */}
         <AnimatePresence>

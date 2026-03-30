@@ -5,6 +5,7 @@ import {
   Target, Crosshair, ChevronLeft, ChevronRight, 
   AlertTriangle, Shield, Check, Wifi
 } from 'lucide-react';
+import ProgressHexagon from '../../components/ProgressHexagon';
 
 const InteractiveTerminal = ({ title, lines, textClass = "text-cyan-400" }) => {
   const [displayedLines, setDisplayedLines] = useState([]);
@@ -261,31 +262,7 @@ export default function CSAModule02() {
     <div className="min-h-screen bg-black font-sans selection:bg-cyan-400/30 selection:text-cyan-400">
       
       {/* Progress Hexagon */}
-      <div className="fixed top-3 right-3 md:top-6 md:right-6 z-50 flex flex-col items-center">
-        <svg viewBox="0 0 80 92" className="w-[36px] h-[44px] md:w-[80px] md:h-[92px] overflow-visible">
-          <defs>
-            <clipPath id="hexProgressClip2">
-              <polygon points="40,2 78,22 78,62 40,82 2,62 2,22" />
-            </clipPath>
-          </defs>
-          <g clipPath="url(#hexProgressClip2)">
-            <rect x="0" y="0" width="80" height="92" fill="#18181b" />
-            <motion.rect 
-              x="0" 
-              y="92" 
-              width="80" 
-              height="92" 
-              fill="#22d3ee" 
-              opacity="0.2"
-              animate={{ y: 92 - (completedSections.size / 9) * 92 }} 
-              transition={{ duration: 1, ease: "easeOut" }} 
-            />
-          </g>
-          <polygon points="40,2 78,22 78,62 40,82 2,62 2,22" stroke="#22d3ee" strokeWidth="2" fill="none" opacity="0.6" />
-        </svg>
-        <div className="text-cyan-400 font-bold text-[10px] md:text-xs mt-1 md:mt-2">{completedSections.size}/9</div>
-        <div className="text-slate-500 font-bold text-[10px]">Complete</div>
-      </div>
+      <ProgressHexagon current={completedSections.size} total={9} />
 
       {/* Badge Overlay */}
       <AnimatePresence>
