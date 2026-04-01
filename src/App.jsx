@@ -46,11 +46,9 @@ function App() {
                 </MainLayout>
             } />
             <Route path="/project/soc-lab" element={
-                <MainLayout>
-                    <Suspense fallback={<PageLoader />}>
-                        <SOCLabProject />
-                    </Suspense>
-                </MainLayout>
+                <Suspense fallback={<PageLoader />}>
+                    <SOCLabProject />
+                </Suspense>
             } />
             <Route path="/csa" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSADashboard /></Suspense></CSACourseLayout>} />
             <Route path="/csa/module-01" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSAModule01 /></Suspense></CSACourseLayout>} />

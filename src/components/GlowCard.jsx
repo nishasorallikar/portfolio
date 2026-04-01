@@ -30,7 +30,7 @@ const GlowCard = ({ children, className, ...props }) => {
             <div
                 className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition duration-300 group-hover:opacity-100"
                 style={{
-                    background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(34,211,238,0.1), transparent 40%)`
+                    background: `radial-gradient(circle 400px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(34,211,238,0.1), transparent 40%)`
                 }}
             />
             

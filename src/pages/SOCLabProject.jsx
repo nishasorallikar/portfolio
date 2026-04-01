@@ -1,652 +1,865 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Github, FileText, Server } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { 
+    Activity, Shield, AlertTriangle, Terminal, 
+    Network, Server, Clock, ServerCrash, Bug, Lock,
+    ChevronRight, ArrowLeft, Github, FileText, LayoutDashboard, Database, Crosshair, Target
+} from 'lucide-react';
 
-/* ─────────────────────────────────────────────
-   Intersection Observer hook (no heavy libs)
-   ───────────────────────────────────────────── */
-function useInView(options = {}) {
-    const ref = useRef(null);
-    const [inView, setInView] = useState(false);
-
-    useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (prefersReduced) { setInView(true); return; }
-
-        const observer = new IntersectionObserver(
-            ([entry]) => { if (entry.isIntersecting) { setInView(true); observer.unobserve(el); } },
-            { threshold: 0.12, ...options }
-        );
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, []);
-
-    return [ref, inView];
-}
-
-/* ─────────────────────────────────────────────
-   Animated counter component (avoids hooks-in-map)
-   ───────────────────────────────────────────── */
-const AnimatedCounter = ({ target, inView, duration = 1500 }) => {
-    const [count, setCount] = useState(0);
-    useEffect(() => {
-        if (!inView) return;
-        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (prefersReduced) { setCount(target); return; }
-        const startTime = performance.now();
-        function step(now) {
-            const elapsed = now - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            setCount(Math.round(eased * target));
-            if (progress < 1) requestAnimationFrame(step);
-        }
-        requestAnimationFrame(step);
-    }, [inView, target, duration]);
-    return count;
+/* ─────────────────────────────────────────────────────────────
+   GLOBAL UTILITIES & SHARED
+   ───────────────────────────────────────────────────────────── */
+const STATUS_COLORS = {
+    critical: 'text-red-400 border-red-500/30 bg-red-500/10',
+    high: 'text-orange-400 border-orange-500/30 bg-orange-500/10',
+    medium: 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10',
+    low: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/10',
+    info: 'text-slate-400 border-slate-500/30 bg-slate-500/10',
+    success: 'text-green-400 border-green-500/30 bg-green-500/10'
 };
 
-
-/* ═══════════════════════════════════════════════
-   BLOCK 1 — Hero
-   ═══════════════════════════════════════════════ */
-const HeroBlock = () => (
-    <section className="text-center mb-28 soc-fade-in">
-        <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-cyan-400 mb-12 transition-colors group text-sm">
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            Back to Portfolio
-        </Link>
-
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-cyan-400 text-xs font-medium mb-8">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 soc-pulse-dot"></span>
-            SOC Lab Project
-        </div>
-
-        <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6 leading-tight tracking-tight">
-            SOC Lab — Network Segmentation<br />
-            <span className="text-gradient">&amp; Threat Detection</span>
-        </h1>
-
-        <p className="text-slate-400 text-lg max-w-2xl mx-auto mb-12 leading-relaxed">
-            Simulated enterprise SOC using pfSense, Suricata, SafeLine WAF and Wazuh SIEM to demonstrate network segmentation, intrusion detection, web application firewalling, and centralized log monitoring in a virtualized multi-zone environment.
-        </p>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="https://github.com/nishasorallikar/SOC-Lab-Network-Segmentation-Threat-Detection" target="_blank" rel="noopener noreferrer"
-                className="btn-static-border cursor-pointer group">
-                <span className="flex items-center gap-2">
-                    <Github size={16} /> GitHub
-                </span>
-            </a>
-            <a href="#documentation" className="text-slate-300 hover:text-white font-medium text-sm flex items-center gap-2 group transition-colors px-5 py-2.5 rounded-lg hover:bg-white/5 border border-white/10">
-                <FileText size={16} /> Documentation
-            </a>
-        </div>
-    </section>
+const Badge = ({ variant = 'info', children, className = '' }) => (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${STATUS_COLORS[variant]} ${className}`}>
+        {children}
+    </span>
 );
 
+/* ─────────────────────────────────────────────────────────────
+   PAGE: OVERVIEW DASHBOARD
+   ───────────────────────────────────────────────────────────── */
+const OverviewPage = () => {
+    const metrics = [
+        { label: 'Total Alerts', value: '1,247', color: 'text-slate-200' },
+        { label: 'Critical', value: '23', color: 'text-red-400' },
+        { label: 'High', value: '89', color: 'text-orange-400' },
+        { label: 'WAF Blocked', value: '389', color: 'text-cyan-400' },
+        { label: 'SSH Failures', value: '47', color: 'text-yellow-400' },
+        { label: 'FIM Events', value: '14', color: 'text-green-400' }
+    ];
 
-/* ═══════════════════════════════════════════════
-   BLOCK 2 — Animated Network Topology (all inline SVG styles)
-   ═══════════════════════════════════════════════ */
-const TopologyBlock = () => {
-    const [ref, inView] = useInView();
-
-    const svgText = (props) => ({
-        fontFamily: "'Space Grotesk', sans-serif",
-        fontWeight: 700,
-        ...props
-    });
-
-    return (
-        <section ref={ref} className={`mb-28 ${inView ? 'soc-fade-in' : 'opacity-0'}`}>
-            <h2 className="text-2xl font-display font-bold text-white mb-2 text-center">Network Topology</h2>
-            <p className="text-slate-500 text-sm text-center mb-8">Three isolated network zones connected via pfSense firewall</p>
-            <div className="card-wrapper max-w-4xl mx-auto">
-                <div className="card-content p-4 sm:p-8 overflow-x-auto">
-                    <svg viewBox="0 0 820 520" style={{ width: '100%', height: 'auto', minWidth: 620 }} xmlns="http://www.w3.org/2000/svg">
-
-                        {/* ─── LAN Zone ─── */}
-                        <rect x="40" y="150" width="230" height="200" rx="14" fill="rgba(45,212,191,0.04)" stroke="#2dd4bf" strokeWidth="1.5" strokeDasharray="8 5" opacity="0.6" />
-                        <text x="155" y="180" textAnchor="middle" style={svgText({ fontSize: 12, fill: '#2dd4bf' })}>LAN — 192.168.10.0/24</text>
-                        {/* Wazuh Manager box */}
-                        <rect x="75" y="205" width="160" height="36" rx="8" fill="rgba(13,148,136,0.15)" stroke="#2dd4bf" strokeWidth="0.8" strokeOpacity="0.4" />
-                        <text x="155" y="228" textAnchor="middle" style={{ fontSize: 11, fill: '#94a3b8', fontFamily: 'Inter, sans-serif' }}>Wazuh Manager</text>
-                        {/* Windows / Lubuntu box */}
-                        <rect x="75" y="260" width="160" height="36" rx="8" fill="rgba(13,148,136,0.08)" stroke="#2dd4bf" strokeWidth="0.5" strokeOpacity="0.25" />
-                        <text x="155" y="283" textAnchor="middle" style={{ fontSize: 11, fill: '#64748b', fontFamily: 'Inter, sans-serif' }}>Windows / Lubuntu</text>
-                        {/* Wazuh icon */}
-                        <circle cx="155" cy="320" r="8" fill="rgba(45,212,191,0.15)" stroke="#2dd4bf" strokeWidth="0.5" />
-                        <text x="155" y="324" textAnchor="middle" style={{ fontSize: 7, fill: '#2dd4bf' }}>W</text>
-
-                        {/* ─── DMZ Zone ─── */}
-                        <rect x="510" y="130" width="270" height="230" rx="14" fill="rgba(245,158,11,0.04)" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="8 5" opacity="0.6" />
-                        <text x="645" y="160" textAnchor="middle" style={svgText({ fontSize: 12, fill: '#f59e0b' })}>DMZ — 192.168.20.0/24</text>
-                        {/* SafeLine WAF box */}
-                        <rect x="545" y="185" width="200" height="40" rx="8" fill="rgba(180,83,9,0.15)" stroke="#f59e0b" strokeWidth="0.8" strokeOpacity="0.4" />
-                        <text x="645" y="210" textAnchor="middle" style={{ fontSize: 12, fill: '#fbbf24', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>SafeLine WAF :443</text>
-                        {/* DVWA box */}
-                        <rect x="545" y="248" width="200" height="40" rx="8" fill="rgba(180,83,9,0.08)" stroke="#f59e0b" strokeWidth="0.5" strokeOpacity="0.25" />
-                        <text x="645" y="273" textAnchor="middle" style={{ fontSize: 12, fill: '#94a3b8', fontFamily: 'Inter, sans-serif' }}>DVWA :8080</text>
-                        {/* WAF → DVWA connector */}
-                        <line x1="645" y1="225" x2="645" y2="248" stroke="#f59e0b" strokeWidth="1" strokeDasharray="3 3" opacity="0.3" />
-                        {/* Arrow head */}
-                        <polygon points="641,246 645,252 649,246" fill="#f59e0b" opacity="0.3" />
-
-                        {/* ─── TEST Zone (Kali) ─── */}
-                        <rect x="310" y="370" width="200" height="110" rx="14" fill="rgba(239,68,68,0.04)" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="8 5" opacity="0.6" />
-                        <text x="410" y="400" textAnchor="middle" style={svgText({ fontSize: 12, fill: '#ef4444' })}>TEST — 192.168.30.0/24</text>
-                        <rect x="355" y="418" width="110" height="32" rx="8" fill="rgba(239,68,68,0.1)" stroke="#ef4444" strokeWidth="0.5" strokeOpacity="0.3" />
-                        <text x="410" y="439" textAnchor="middle" style={{ fontSize: 11, fill: '#f87171', fontFamily: 'Inter, sans-serif' }}>Kali Linux</text>
-
-                        {/* ─── pfSense Central Node ─── */}
-                        <rect x="345" y="40" width="130" height="54" rx="12" fill="#1e293b" stroke="#3b82f6" strokeWidth="2" />
-                        <text x="410" y="72" textAnchor="middle" style={svgText({ fontSize: 14, fill: '#60a5fa' })}>pfSense</text>
-                        {/* Pulse ring */}
-                        <circle cx="410" cy="67" r="34" fill="none" stroke="#3b82f6" strokeWidth="0.7" opacity="0.15" className="soc-pulse-ring" />
-                        <circle cx="410" cy="67" r="42" fill="none" stroke="#3b82f6" strokeWidth="0.3" opacity="0.08" className="soc-pulse-ring" />
-
-                        {/* ─── Connection lines ─── */}
-                        {/* pfSense → LAN */}
-                        <line x1="345" y1="75" x2="270" y2="210" stroke="#2dd4bf" strokeWidth="1.2" strokeDasharray="6 4" opacity="0.25" />
-                        <polygon points="267,206 273,206 270,212" fill="#2dd4bf" opacity="0.3" />
-
-                        {/* pfSense → DMZ */}
-                        <line x1="475" y1="75" x2="545" y2="200" stroke="#f59e0b" strokeWidth="1.2" strokeDasharray="6 4" opacity="0.25" />
-                        <polygon points="543,196 549,196 546,203" fill="#f59e0b" opacity="0.3" />
-
-                        {/* pfSense → TEST */}
-                        <line x1="410" y1="94" x2="410" y2="370" stroke="#ef4444" strokeWidth="1.2" strokeDasharray="6 4" opacity="0.25" />
-                        <polygon points="406,366 410,373 414,366" fill="#ef4444" opacity="0.3" />
-
-
-                        {/* ─── ANIMATED ATTACK PATH (red dot: Kali → pfSense → WAF → BLOCKED) ─── */}
-                        <path d="M 410 435 L 410 67 L 645 205" fill="none" stroke="#ef4444" strokeWidth="1" strokeDasharray="5 5" opacity="0.12" />
-
-                        {/* Red dot with glow */}
-                        <circle r="6" fill="#ef4444" opacity="0.9" style={{ filter: 'drop-shadow(0 0 8px rgba(239,68,68,0.8))' }}>
-                            <animateMotion dur="4s" repeatCount="indefinite"
-                                keyPoints="0;0.45;0.9;0.9;1;1"
-                                keyTimes="0;0.35;0.65;0.72;0.8;1"
-                                calcMode="linear">
-                                <mpath href="#redPath" />
-                            </animateMotion>
-                        </circle>
-                        <path id="redPath" d="M 410 435 L 410 67 L 645 205" fill="none" />
-
-                        {/* Block X flash at WAF */}
-                        <g opacity="0">
-                            <animate attributeName="opacity" values="0;0;0;0;0;1;0.6;0;0" dur="4s" repeatCount="indefinite" />
-                            <line x1="632" y1="192" x2="658" y2="218" stroke="#ef4444" strokeWidth="3.5" strokeLinecap="round" />
-                            <line x1="658" y1="192" x2="632" y2="218" stroke="#ef4444" strokeWidth="3.5" strokeLinecap="round" />
-                            {/* Red flash glow */}
-                            <circle cx="645" cy="205" r="20" fill="none" stroke="#ef4444" strokeWidth="2" opacity="0.5">
-                                <animate attributeName="r" values="15;25;15" dur="0.4s" begin="2.6s" repeatCount="indefinite" />
-                                <animate attributeName="opacity" values="0.5;0;0.5" dur="0.4s" begin="2.6s" repeatCount="indefinite" />
-                            </circle>
-                        </g>
-
-
-                        {/* ─── ANIMATED CLEAN TRAFFIC (green dot: Kali → pfSense → WAF → DVWA) ─── */}
-                        <path d="M 410 435 L 410 67 L 645 205 L 645 268" fill="none" stroke="#22c55e" strokeWidth="1" strokeDasharray="5 5" opacity="0.08" />
-
-                        <circle r="5" fill="#22c55e" opacity="0.85" style={{ filter: 'drop-shadow(0 0 6px rgba(34,197,94,0.7))' }}>
-                            <animateMotion dur="4s" repeatCount="indefinite" begin="2s"
-                                keyPoints="0;0.35;0.7;1;1"
-                                keyTimes="0;0.3;0.6;0.85;1"
-                                calcMode="linear">
-                                <mpath href="#greenPath" />
-                            </animateMotion>
-                        </circle>
-                        <path id="greenPath" d="M 410 435 L 410 67 L 645 205 L 645 268" fill="none" />
-
-                        {/* Green checkmark flash at DVWA */}
-                        <g opacity="0">
-                            <animate attributeName="opacity" values="0;0;0;0;0;0;0;1;0.5;0" dur="4s" repeatCount="indefinite" begin="2s" />
-                            <circle cx="645" cy="268" r="12" fill="none" stroke="#22c55e" strokeWidth="2" opacity="0.4" />
-                            <text x="645" y="273" textAnchor="middle" style={{ fontSize: 14, fill: '#22c55e' }}>✓</text>
-                        </g>
-
-
-                        {/* ─── Legend ─── */}
-                        <rect x="40" y="488" width="200" height="24" rx="6" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
-                        <circle cx="58" cy="500" r="4" fill="#ef4444" />
-                        <text x="70" y="504" style={{ fontSize: 9, fill: '#64748b', fontFamily: 'Inter, sans-serif' }}>Blocked attack</text>
-                        <circle cx="155" cy="500" r="4" fill="#22c55e" />
-                        <text x="167" y="504" style={{ fontSize: 9, fill: '#64748b', fontFamily: 'Inter, sans-serif' }}>Clean traffic</text>
-
-                    </svg>
-                </div>
-            </div>
-        </section>
-    );
-};
-
-
-/* ═══════════════════════════════════════════════
-   BLOCK 3 — Defense Layers (staggered slide-in)
-   ═══════════════════════════════════════════════ */
-const defenseLayers = [
-    {
-        label: 'pfSense', desc: 'Network segmentation · ACL rules · NAT', color: '#3b82f6',
-        icon: (c) => <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20"/><circle cx="5.5" cy="6.5" r="0.8" fill={c}/><circle cx="8.5" cy="6.5" r="0.8" fill={c}/><path d="M6 14h4M14 14h4M6 17h3M14 17h2"/><line x1="12" y1="9" x2="12" y2="20" strokeDasharray="2 2" opacity="0.4"/></svg>,
-    },
-    {
-        label: 'Suricata', desc: 'Deep packet inspection · signature detection', color: '#a855f7',
-        icon: (c) => <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4"/><path d="M3 12h4M17 12h4"/><path d="M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8"/><path d="M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="1" fill={c}/></svg>,
-    },
-    {
-        label: 'SafeLine WAF', desc: 'SQLi · XSS · CMDi · LFI blocking', color: '#f59e0b',
-        icon: (c) => <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L3 7v6c0 5.5 3.8 10.3 9 11.5 5.2-1.2 9-6 9-11.5V7l-9-5z"/><path d="M8 12h8M8 15h5"/><circle cx="17" cy="7" r="3" fill="none" stroke={c} strokeWidth="1.4"/><path d="M15.6 8.4l2.8-2.8" strokeWidth="1.4"/></svg>,
-    },
-    {
-        label: 'Wazuh SIEM', desc: 'Log collection · FIM · SSH monitoring', color: '#22d3ee',
-        icon: (c) => <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M2 8h20"/><circle cx="5" cy="5.5" r="0.7" fill={c}/><circle cx="7.5" cy="5.5" r="0.7" fill={c}/><circle cx="10" cy="5.5" r="0.7" fill={c}/><path d="M5 12l2 3 3-5 2 2 3-4 2 3" strokeWidth="1.4"/><rect x="5" y="17" width="3" height="2" rx="0.5" fill={c} opacity="0.3"/><rect x="10" y="16" width="3" height="3" rx="0.5" fill={c} opacity="0.3"/><rect x="15" y="15" width="3" height="4" rx="0.5" fill={c} opacity="0.3"/></svg>,
-    },
-];
-
-/* ─── Mini Animated Visualizers for Defense Layers ─── */
-const LayerVisualizers = {
-    pfSense: ({ color }) => (
-        <div className="relative w-full h-full flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity">
-            {/* Traffic passing through a gate */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                <motion.line x1="10%" y1="50%" x2="40%" y2="50%" stroke={`${color}40`} strokeWidth="1.5" strokeDasharray="3 3" />
-                <motion.line x1="60%" y1="50%" x2="90%" y2="50%" stroke={`${color}40`} strokeWidth="1.5" strokeDasharray="3 3" />
-                <motion.line x1="50%" y1="20%" x2="50%" y2="80%" stroke={color} strokeWidth="2.5" 
-                    animate={{ scaleY: [1, 0.6, 1], opacity: [1, 0.7, 1] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }} />
-                
-                <motion.circle r="3.5" fill={color} animate={{ cx: ["10%", "90%"], cy: ["50%", "50%"] }} transition={{ duration: 2, ease: "linear", repeat: Infinity }} />
-            </svg>
-        </div>
-    ),
-    Suricata: ({ color }) => (
-        <div className="relative w-full h-full flex items-center justify-center overflow-hidden opacity-60 group-hover:opacity-100 transition-opacity">
-            <motion.div className="w-10 h-10 rounded-full border border-dashed" style={{ borderColor: color }} animate={{ rotate: 360 }} transition={{ duration: 5, ease: "linear", repeat: Infinity }} />
-            <motion.div className="absolute w-6 h-6 rounded-full border border-dotted" style={{ borderColor: color }} animate={{ rotate: -360 }} transition={{ duration: 3, ease: "linear", repeat: Infinity }} />
-            <motion.div className="absolute w-1.5 h-1.5 rounded-full" style={{ background: color }} animate={{ scale: [1, 1.8, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }} />
-        </div>
-    ),
-    'SafeLine WAF': ({ color }) => (
-        <div className="relative w-full h-full flex flex-col items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity">
-            {/* Shield block animation */}
-            <motion.div className="w-[3px] h-10 rounded-full z-10" style={{ background: color, boxShadow: `0 0 10px ${color}` }} animate={{ height: [40, 20, 40] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }} />
-            <div className="absolute inset-0 flex items-center justify-center">
-                <motion.div className="w-3 h-3 rounded-full bg-red-500 absolute" style={{ left: '20%' }} animate={{ x: [0, 25], scale: [1, 0.2], opacity: [1, 0] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeIn" }} />
-                <motion.div className="w-3 h-3 rounded-full bg-green-500 absolute" style={{ right: '20%' }} animate={{ x: [-25, 0], scale: [0.2, 1], opacity: [0, 1] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.8 }} />
-            </div>
-        </div>
-    ),
-    'Wazuh SIEM': ({ color }) => (
-        <div className="relative w-full h-full flex items-center justify-center overflow-hidden opacity-60 group-hover:opacity-100 transition-opacity">
-            {/* Radar Sweep */}
-            <motion.div className="absolute w-16 h-16 rounded-full border border-t-0 border-r-0" style={{ borderColor: color, background: `conic-gradient(from 0deg, transparent 0deg, transparent 270deg, ${color} 360deg)` }} animate={{ rotate: 360 }} transition={{ duration: 3, ease: "linear", repeat: Infinity }} />
-            <div className="absolute w-16 h-16 rounded-full border opacity-10" style={{ borderColor: color }} />
-            <div className="absolute w-8 h-8 rounded-full border opacity-20" style={{ borderColor: color }} />
-            <motion.div className="absolute w-1.5 h-1.5 rounded-full" style={{ background: color, top: '20%', left: '35%' }} animate={{ scale: [0, 2, 0], opacity: [0, 1, 0] }} transition={{ duration: 2, delay: 0.5, repeat: Infinity }} />
-            <motion.div className="absolute w-2 h-2 rounded-full" style={{ background: color, bottom: '25%', right: '30%' }} animate={{ scale: [0, 2, 0], opacity: [0, 1, 0] }} transition={{ duration: 2, delay: 1.5, repeat: Infinity }} />
-        </div>
-    ),
-};
-
-const DefenseBlock = () => {
-    const [ref, inView] = useInView();
-    return (
-        <section ref={ref} className="mb-28 overflow-hidden">
-            <h2 className={`text-2xl font-display font-bold text-white mb-2 text-center transition-all duration-500 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                Defense Layers
-            </h2>
-            <p className={`text-slate-500 text-sm text-center mb-10 transition-all duration-500 delay-100 ${inView ? 'opacity-100' : 'opacity-0'}`}>
-                Four layers of defense stacked to protect the enterprise environment
-            </p>
-            <div className="max-w-3xl mx-auto space-y-4 px-4 overflow-visible">
-                {defenseLayers.map((layer, i) => {
-                    const Visualizer = LayerVisualizers[layer.label];
-                    return (
-                        <motion.div
-                            key={layer.label}
-                            initial={{ opacity: 0, x: -60 }}
-                            animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -60 }}
-                            transition={{ duration: 0.6, delay: i * 0.15, type: 'spring', bounce: 0.35 }}
-                            whileHover={{ scale: 1.015, x: 8 }}
-                            className="group relative cursor-pointer"
-                        >
-                            <div className="flex items-center gap-4 px-5 py-4 sm:px-6 sm:py-5 rounded-r-2xl bg-[#0b0f19] border border-white/5 border-l-0 overflow-hidden relative z-10"
-                                style={{
-                                    borderLeft: `4px solid ${layer.color}`,
-                                    boxShadow: `0 8px 30px -15px ${layer.color}30`
-                                }}
-                            >
-                                {/* Background hover glow */}
-                                <div className="absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-300 pointer-events-none" style={{ background: layer.color }} />
-
-                                {/* Left Icon */}
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110"
-                                    style={{ background: `${layer.color}15`, border: `1px solid ${layer.color}30`, boxShadow: `0 0 15px ${layer.color}10` }}>
-                                    {layer.icon(layer.color)}
-                                </div>
-
-                                {/* Text Content */}
-                                <div className="flex-1 min-w-0 relative z-10 py-1">
-                                    <h3 className="font-display font-bold text-white text-sm md:text-base mb-0.5 transition-colors duration-300">
-                                        {layer.label}
-                                    </h3>
-                                    <p className="text-slate-400 text-[11px] sm:text-xs leading-relaxed">{layer.desc}</p>
-                                </div>
-
-                                {/* Visualizer Block */}
-                                <div className="w-20 h-12 sm:w-28 sm:h-16 shrink-0 rounded-lg bg-black/60 border border-white/[0.03] relative overflow-hidden transition-all duration-300 group-hover:border-white/10 group-hover:bg-black/80">
-                                    {/* Gradient overlay to blend left side */}
-                                    <div className="absolute top-0 left-0 w-8 h-full z-10 bg-gradient-to-r from-black/80 to-transparent pointer-events-none" />
-                                    {Visualizer && <Visualizer color={layer.color} />}
-                                </div>
-                            </div>
-                        </motion.div>
-                    );
-                })}
-            </div>
-        </section>
-    );
-};
-
-
-/* ═══════════════════════════════════════════════
-   BLOCK 4 — Attack Flow (sequential stepper)
-   ═══════════════════════════════════════════════ */
-const attackSteps = [
-    { label: 'Kali', sub: 'Attacker', color: '#ef4444' },
-    { label: 'pfSense', sub: 'Firewall', color: '#3b82f6' },
-    { label: 'WAF', sub: 'Filter', color: '#f59e0b' },
-    { label: 'Decision', sub: 'Block / Allow', color: '#a855f7', isDecision: true },
-    { label: 'DVWA', sub: 'Target', color: '#22c55e' },
-];
-
-const AttackFlowBlock = () => {
-    const [ref, inView] = useInView();
-    const [activeStep, setActiveStep] = useState(-1);
+    const [alerts, setAlerts] = useState([
+        { id: 1, severity: 'critical', rule: 'ET EXPLOIT PHP Shell Upload', src: '192.168.30.100', time: 'Just now' },
+        { id: 2, severity: 'high', rule: 'ET WEB_SERVER SQLi Attempt', src: '192.168.30.100', time: '2m ago' },
+        { id: 3, severity: 'medium', rule: 'SSH invalid user admin', src: '192.168.20.110', time: '5m ago' },
+        { id: 4, severity: 'info', rule: 'FIM: /root/test.txt modified', src: '192.168.10.102', time: '12m ago' },
+        { id: 5, severity: 'low', rule: 'Windows logon success', src: '192.168.10.101', time: '1h ago' },
+        { id: 6, severity: 'high', rule: 'Suspicious Execution via WMI', src: '192.168.10.101', time: '2h ago' },
+        { id: 7, severity: 'medium', rule: 'Repeated Login Failures', src: '192.168.20.110', time: '2h ago' }
+    ]);
 
     useEffect(() => {
-        if (!inView) return;
-        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (prefersReduced) { setActiveStep(4); return; }
-
-        let i = 0;
+        const rules = ['SSH brute force', 'Port Scan Detected', 'XSS Attempt', 'SQLi attempt blocked'];
+        const sevs = ['critical', 'high', 'medium', 'low'];
         const interval = setInterval(() => {
-            setActiveStep(i);
-            i++;
-            if (i >= attackSteps.length) clearInterval(interval);
-        }, 600);
+            setAlerts(prev => {
+                const newAlert = {
+                    id: Date.now(),
+                    severity: sevs[Math.floor(Math.random()*sevs.length)],
+                    rule: rules[Math.floor(Math.random()*rules.length)],
+                    src: '192.168.30.' + Math.floor(Math.random()*200),
+                    time: 'Just now'
+                };
+                return [newAlert, ...prev.slice(0, 7)];
+            });
+        }, 8000);
         return () => clearInterval(interval);
-    }, [inView]);
+    }, []);
+
+    const agents = [
+        { os: 'Ubuntu', name: 'Ubuntu-DMZ', ip: '192.168.20.110', status: 'Active', events: '4,210' },
+        { os: 'Linux', name: 'Lubuntu-LAN', ip: '192.168.10.102', status: 'Active', events: '12,050' },
+        { os: 'Windows', name: 'Windows-LAN', ip: '192.168.10.101', status: 'Active', events: '890' }
+    ];
 
     return (
-        <section ref={ref} className="mb-28">
-            <h2 className={`text-2xl font-display font-bold text-white mb-2 text-center transition-all duration-500 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                Attack Flow
-            </h2>
-            <p className={`text-slate-500 text-sm text-center mb-10 transition-all duration-500 delay-100 ${inView ? 'opacity-100' : 'opacity-0'}`}>
-                Traffic path from attacker through security layers to target
-            </p>
-            <div className="max-w-4xl mx-auto overflow-x-auto pb-4">
-                <div className="flex items-start justify-between gap-0 px-4" style={{ minWidth: 560 }}>
-                    {attackSteps.map((step, i) => {
-                        const isActive = i <= activeStep;
-                        const isCurrent = i === activeStep;
-                        return (
-                            <React.Fragment key={step.label}>
-                                <div className="flex flex-col items-center shrink-0" style={{ width: 80 }}>
-                                    <div
-                                        className="w-16 h-16 rounded-2xl flex items-center justify-center font-bold font-display border-2"
-                                        style={{
-                                            background: isActive ? `${step.color}15` : 'rgba(255,255,255,0.02)',
-                                            borderColor: isActive ? `${step.color}60` : 'rgba(255,255,255,0.06)',
-                                            color: isActive ? step.color : '#334155',
-                                            boxShadow: isCurrent ? `0 0 30px ${step.color}30, 0 0 60px ${step.color}10` : 'none',
-                                            transform: isActive ? 'scale(1)' : 'scale(0.85)',
-                                            transition: 'all 500ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-                                        }}
-                                    >
-                                        {step.isDecision ? (
-                                            <div className="flex gap-1.5 text-lg">
-                                                <span style={{ color: '#ef4444' }}>✕</span>
-                                                <span style={{ color: '#22c55e' }}>✓</span>
-                                            </div>
-                                        ) : (
-                                            <span style={{ fontSize: 11 }}>{step.label}</span>
-                                        )}
+        <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+                {metrics.map((m, i) => (
+                    <div key={i} className="bg-black/40 backdrop-blur-md border border-white/[0.05] rounded-xl p-4 flex flex-col justify-between h-24 relative overflow-hidden group hover:border-cyan-500/30 transition-colors">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest z-10 group-hover:text-cyan-400 transition-colors">{m.label}</span>
+                        <span className={`text-3xl font-light font-mono z-10 ${m.color}`}>{m.value}</span>
+                    </div>
+                ))}
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-[calc(100vh-280px)]">
+                <div className="xl:col-span-2 bg-black/40 backdrop-blur-md border border-white/[0.05] rounded-xl flex flex-col relative overflow-hidden shadow-2xl">
+                    <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
+                    <div className="p-4 border-b border-white/[0.05] flex justify-between items-center bg-black/20">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                            <Activity size={14} className="text-cyan-400"/> Live Threat Feed
+                        </h3>
+                    </div>
+                    <div className="flex-1 overflow-auto p-2 space-y-1 custom-scrollbar">
+                        <AnimatePresence>
+                            {alerts.map(a => (
+                                <motion.div key={a.id} initial={{ opacity: 0, x: -20, backgroundColor: 'rgba(34, 211, 238, 0.1)' }} animate={{ opacity: 1, x: 0, backgroundColor: 'rgba(0, 0, 0, 0)' }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}
+                                    className="flex items-center justify-between p-3 rounded-lg hover:bg-white/[0.02] cursor-pointer border border-transparent hover:border-white/[0.05] transition-colors group">
+                                    <div className="flex items-center gap-4">
+                                        <Badge variant={a.severity} className="w-20 justify-center">{a.severity}</Badge>
+                                        <span className="text-sm text-zinc-300 font-mono tracking-tight group-hover:text-white transition-colors">{a.rule}</span>
                                     </div>
-                                    <span className="text-xs mt-3 font-display font-semibold" style={{ color: isActive ? step.color : '#475569', transition: 'color 400ms' }}>
-                                        {step.label}
-                                    </span>
-                                    <span className="text-[10px] mt-0.5" style={{ color: '#64748b' }}>{step.sub}</span>
-                                </div>
-                                {i < attackSteps.length - 1 && (
-                                    <div className="flex-1 flex items-center" style={{ height: 64 }}>
-                                        <div className="w-full h-0.5 rounded-full"
-                                            style={{
-                                                background: i < activeStep
-                                                    ? `linear-gradient(to right, ${step.color}, ${attackSteps[i + 1].color})`
-                                                    : 'rgba(255,255,255,0.06)',
-                                                transition: 'background 600ms ease',
-                                                boxShadow: i < activeStep ? `0 0 8px ${step.color}30` : 'none',
-                                            }}
-                                        />
+                                    <div className="flex items-center gap-6 text-[11px] text-zinc-500 font-mono">
+                                        <span className="px-2 py-0.5 bg-black rounded border border-white/[0.05] group-hover:border-cyan-500/30 transition-colors">{a.src}</span>
+                                        <span className="w-16 text-right group-hover:text-cyan-400 transition-colors">{a.time}</span>
                                     </div>
-                                )}
-                            </React.Fragment>
-                        );
-                    })}
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
                 </div>
 
-                {/* WAF glow indicators below stepper */}
-                <div className="flex justify-center gap-6 mt-6">
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-red-500/20 bg-red-500/5">
-                        <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                        <span className="text-xs text-red-400 font-medium">Blocked payloads → red glow on WAF</span>
+                <div className="bg-black/40 backdrop-blur-md border border-white/[0.05] rounded-xl flex flex-col relative overflow-hidden shadow-2xl">
+                    <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-green-500/20 to-transparent" />
+                    <div className="p-4 border-b border-white/[0.05] bg-black/20">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                            <Server size={14} className="text-green-400"/> Forwarder Status
+                        </h3>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-green-500/20 bg-green-500/5">
-                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                        <span className="text-xs text-green-400 font-medium">Clean traffic → passes through</span>
+                    <div className="p-4 space-y-4 overflow-auto custom-scrollbar">
+                        {agents.map((ag, i) => (
+                            <div key={i} className="bg-black/50 border border-white/[0.05] p-3.5 rounded-xl hover:border-cyan-500/30 transition-colors relative overflow-hidden group">
+                                <div className="absolute inset-y-0 left-0 w-1 bg-green-500/50 group-hover:bg-cyan-500 transition-colors" />
+                                <div className="flex justify-between items-start mb-3 ml-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center text-sm font-bold text-zinc-300 border border-white/[0.05] group-hover:border-cyan-500/30">{ag.os[0]}</div>
+                                        <div>
+                                            <div className="text-sm text-zinc-200 font-semibold group-hover:text-white transition-colors">{ag.name}</div>
+                                            <div className="text-[10px] text-zinc-500 font-mono tracking-wider">{ag.ip}</div>
+                                        </div>
+                                    </div>
+                                    <Badge variant="success" className="bg-green-500/10 border-green-500/20 text-green-400 group-hover:shadow-[0_0_10px_rgba(74,222,128,0.3)]">Online</Badge>
+                                </div>
+                                <div className="flex justify-between text-[10px] text-zinc-500 uppercase tracking-widest pt-2 border-t border-white/[0.05] ml-2">
+                                    <span>Rx/Tx: 2ms</span>
+                                    <span className="text-cyan-400 font-mono group-hover:font-bold">{ag.events} EPS</span>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
     );
 };
 
+/* ─────────────────────────────────────────────────────────────
+   PAGE: HIGH-FIDELITY CYBER NETWORK MAP
+   ───────────────────────────────────────────────────────────── */
+const NetworkMapPage = () => {
+    return (
+        <div className="bg-black/60 backdrop-blur-xl border border-white/[0.05] rounded-2xl h-[calc(100vh-180px)] flex items-center justify-center relative shadow-2xl animate-in fade-in duration-700 overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
+            
+            {/* Subtle grid background */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_70%,transparent_100%)] opacity-40" />
 
-/* ═══════════════════════════════════════════════
-   BLOCK 5 — WAF Test Results Table
-   ═══════════════════════════════════════════════ */
-const testResults = [
-    { attack: 'Command injection', payload: '127.0.0.1; whoami', tool: 'SafeLine WAF', result: 'Blocked', emoji: '🔴', status: 'red' },
-    { attack: 'File inclusion', payload: '?page=../../../etc', tool: 'SafeLine WAF', result: 'Blocked', emoji: '🔴', status: 'red' },
-    { attack: 'File upload', payload: 'php-reverse-shell.php', tool: 'SafeLine WAF', result: 'Blocked', emoji: '🔴', status: 'red' },
-    { attack: 'SQL injection', payload: "admin' OR '1'='1", tool: 'SafeLine WAF', result: 'Blocked', emoji: '🔴', status: 'red' },
-    { attack: 'XSS', payload: "<script>alert('XSS')</script>", tool: 'SafeLine WAF', result: 'Blocked', emoji: '🔴', status: 'red' },
-    { attack: 'NIDS test traffic', payload: 'curl testmynids.org', tool: 'Suricata', result: 'Detected', emoji: '🟡', status: 'yellow' },
-    { attack: 'SSH brute force', payload: 'ssh wronguser@host', tool: 'Wazuh', result: 'Detected', emoji: '🟡', status: 'yellow' },
-    { attack: 'FIM — file created', payload: 'touch samplefile.txt', tool: 'Wazuh FIM', result: 'Detected', emoji: '🟡', status: 'yellow' },
+            {/* Scanning Radar Line */}
+            <div className="absolute top-0 bottom-0 left-0 w-full opacity-[0.06] pointer-events-none overflow-hidden">
+                <motion.div 
+                    initial={{ y: "-100%" }}
+                    animate={{ y: "100%" }}
+                    transition={{ duration: 5, ease: "linear", repeat: Infinity }}
+                    className="h-40 w-full bg-gradient-to-b from-transparent via-cyan-500 to-transparent"
+                />
+            </div>
+
+            <svg viewBox="0 0 960 580" className="w-full h-full max-w-6xl z-10 relative" style={{fontFamily: 'ui-monospace, monospace'}}>
+                <defs>
+                    <filter id="glow-cyan" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="3" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                    <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="4" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                    <filter id="glow-orange" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="3" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                    
+                    {/* Animated paths */}
+                    <path id="atkPath" d="M 130 135 L 130 300 C 130 320, 250 320, 380 310 L 480 300 C 520 295, 580 200, 600 165" fill="none" />
+                    <path id="cleanPath" d="M 600 165 L 600 240" fill="none" />
+                    <path id="syslogPath" d="M 380 420 C 380 450, 500 470, 560 470" fill="none" />
+                </defs>
+
+                {/* ═══ ZONE: EXTERNAL (Test Net) ═══ */}
+                <rect x="30" y="30" width="200" height="230" rx="12" fill="rgba(248,113,113,0.03)" stroke="rgba(248,113,113,0.25)" strokeWidth="1" strokeDasharray="6 4" />
+                <text x="48" y="52" fill="#f87171" fontSize="9" fontWeight="700" letterSpacing="0.15em">EXTERNAL — 192.168.30.0/24</text>
+
+                {/* Node: Kali Linux */}
+                <g transform="translate(55, 80)">
+                    <rect width="150" height="70" rx="8" fill="#0a0a0a" stroke="rgba(248,113,113,0.4)" strokeWidth="1.5" />
+                    <rect width="150" height="1" y="0" rx="1" fill="#ef4444" opacity="0.6" />
+                    <rect x="12" y="14" width="28" height="28" rx="6" fill="rgba(239,68,68,0.15)" stroke="rgba(239,68,68,0.3)" strokeWidth="1" />
+                    <text x="26" y="33" textAnchor="middle" fill="#f87171" fontSize="14" fontWeight="800">K</text>
+                    <text x="52" y="26" fill="#fca5a5" fontSize="11" fontWeight="700">Kali Linux</text>
+                    <text x="52" y="40" fill="#71717a" fontSize="8" fontWeight="500">192.168.30.100</text>
+                    <circle cx="136" cy="28" r="4" fill="#ef4444" opacity="0.8">
+                        <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
+                    </circle>
+                    <text x="12" y="60" fill="#52525b" fontSize="7" fontWeight="600" letterSpacing="0.1em">ATTACKER WORKSTATION</text>
+                </g>
+
+                {/* ═══ ZONE: PERIMETER ═══ */}
+                <rect x="260" y="250" width="200" height="90" rx="12" fill="rgba(59,130,246,0.03)" stroke="rgba(59,130,246,0.25)" strokeWidth="1" strokeDasharray="6 4" />
+                <text x="278" y="272" fill="#60a5fa" fontSize="9" fontWeight="700" letterSpacing="0.15em">GATEWAY</text>
+
+                {/* Node: pfSense */}
+                <g transform="translate(280, 282)">
+                    <rect width="160" height="48" rx="6" fill="#0a0a0a" stroke="rgba(59,130,246,0.5)" strokeWidth="1.5" />
+                    <rect width="160" height="1" y="0" rx="1" fill="#3b82f6" opacity="0.7" />
+                    <rect x="10" y="10" width="28" height="28" rx="6" fill="rgba(59,130,246,0.15)" stroke="rgba(59,130,246,0.3)" strokeWidth="1" />
+                    <text x="24" y="29" textAnchor="middle" fill="#60a5fa" fontSize="13" fontWeight="800">FW</text>
+                    <text x="48" y="24" fill="#93c5fd" fontSize="10" fontWeight="700">pfSense CE</text>
+                    <text x="48" y="36" fill="#71717a" fontSize="8">3-Zone Gateway Router</text>
+                    <circle cx="146" cy="24" r="4" fill="#3b82f6" opacity="0.8">
+                        <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+                    </circle>
+                </g>
+
+                {/* ═══ ZONE: DMZ ═══ */}
+                <rect x="500" y="30" width="430" height="260" rx="12" fill="rgba(251,146,60,0.03)" stroke="rgba(251,146,60,0.2)" strokeWidth="1" strokeDasharray="6 4" />
+                <text x="518" y="52" fill="#fb923c" fontSize="9" fontWeight="700" letterSpacing="0.15em">DMZ — 192.168.20.0/24</text>
+
+                {/* Node: SafeLine WAF */}
+                <g transform="translate(520, 80)">
+                    <rect width="170" height="70" rx="8" fill="#0a0a0a" stroke="rgba(251,146,60,0.5)" strokeWidth="1.5" />
+                    <rect width="170" height="1" y="0" rx="1" fill="#f97316" opacity="0.7" />
+                    <rect x="12" y="14" width="28" height="28" rx="6" fill="rgba(249,115,22,0.15)" stroke="rgba(249,115,22,0.3)" strokeWidth="1" />
+                    <text x="26" y="33" textAnchor="middle" fill="#fb923c" fontSize="12" fontWeight="800">SL</text>
+                    <text x="52" y="26" fill="#fdba74" fontSize="11" fontWeight="700">SafeLine WAF</text>
+                    <text x="52" y="40" fill="#71717a" fontSize="8">Reverse Proxy :443</text>
+                    <circle cx="154" cy="28" r="4" fill="#22c55e" opacity="0.8">
+                        <animate attributeName="opacity" values="0.4;1;0.4" dur="1.8s" repeatCount="indefinite" />
+                    </circle>
+                    <text x="12" y="60" fill="#52525b" fontSize="7" fontWeight="600" letterSpacing="0.1em">WEB APPLICATION FIREWALL</text>
+                </g>
+                
+                {/* WAF BLOCK burst animation */}
+                <g transform="translate(605, 115)">
+                    <circle r="0" fill="none" stroke="#ef4444" strokeWidth="2" opacity="0">
+                        <animate attributeName="r" values="0;40;50" dur="0.6s" begin="atkDot.end" fill="freeze" />
+                        <animate attributeName="opacity" values="0;0.8;0" dur="0.6s" begin="atkDot.end" fill="freeze" />
+                    </circle>
+                    <text y="-30" textAnchor="middle" fill="#ef4444" fontSize="10" fontWeight="800" letterSpacing="0.15em" opacity="0">
+                        <animate attributeName="opacity" values="0;1;1;0" dur="1.2s" begin="atkDot.end" fill="freeze" />
+                        403 BLOCKED
+                    </text>
+                </g>
+
+                {/* Node: DVWA */}
+                <g transform="translate(520, 190)">
+                    <rect width="170" height="70" rx="8" fill="#0a0a0a" stroke="rgba(34,197,94,0.4)" strokeWidth="1" />
+                    <rect width="170" height="1" y="0" rx="1" fill="#22c55e" opacity="0.5" />
+                    <rect x="12" y="14" width="28" height="28" rx="6" fill="rgba(34,197,94,0.1)" stroke="rgba(34,197,94,0.25)" strokeWidth="1" />
+                    <text x="26" y="33" textAnchor="middle" fill="#4ade80" fontSize="12" fontWeight="800">DV</text>
+                    <text x="52" y="26" fill="#86efac" fontSize="11" fontWeight="700">DVWA Server</text>
+                    <text x="52" y="40" fill="#71717a" fontSize="8">192.168.20.110 :8080</text>
+                    <circle cx="154" cy="28" r="4" fill="#22c55e" opacity="0.8" />
+                    <text x="12" y="60" fill="#52525b" fontSize="7" fontWeight="600" letterSpacing="0.1em">VULNERABLE WEB APP</text>
+                </g>
+
+                {/* Node: Suricata */}
+                <g transform="translate(750, 120)">
+                    <rect width="160" height="50" rx="8" fill="#0a0a0a" stroke="rgba(168,85,247,0.4)" strokeWidth="1" />
+                    <rect width="160" height="1" y="0" rx="1" fill="#a855f7" opacity="0.5" />
+                    <rect x="10" y="11" width="28" height="28" rx="6" fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.25)" strokeWidth="1" />
+                    <text x="24" y="30" textAnchor="middle" fill="#c084fc" fontSize="12" fontWeight="800">SU</text>
+                    <text x="48" y="26" fill="#d8b4fe" fontSize="10" fontWeight="700">Suricata NIDS</text>
+                    <text x="48" y="38" fill="#71717a" fontSize="8">IDS/IPS Engine</text>
+                    <circle cx="146" cy="25" r="4" fill="#a855f7" opacity="0.7">
+                        <animate attributeName="opacity" values="0.3;1;0.3" dur="1.2s" repeatCount="indefinite" />
+                    </circle>
+                </g>
+
+                {/* ═══ ZONE: LAN (Internal) ═══ */}
+                <rect x="30" y="370" width="900" height="190" rx="12" fill="rgba(34,211,238,0.02)" stroke="rgba(34,211,238,0.2)" strokeWidth="1" strokeDasharray="6 4" />
+                <text x="48" y="392" fill="#22d3ee" fontSize="9" fontWeight="700" letterSpacing="0.15em">LAN — 192.168.10.0/24</text>
+
+                {/* Node: Wazuh */}
+                <g transform="translate(80, 420)">
+                    <rect width="180" height="70" rx="8" fill="#0a0a0a" stroke="rgba(6,182,212,0.5)" strokeWidth="1.5" />
+                    <rect width="180" height="1" y="0" rx="1" fill="#06b6d4" opacity="0.7" />
+                    <rect x="12" y="14" width="28" height="28" rx="6" fill="rgba(6,182,212,0.15)" stroke="rgba(6,182,212,0.3)" strokeWidth="1" />
+                    <text x="26" y="33" textAnchor="middle" fill="#22d3ee" fontSize="12" fontWeight="800">WZ</text>
+                    <text x="52" y="26" fill="#67e8f9" fontSize="11" fontWeight="700">Wazuh Manager</text>
+                    <text x="52" y="40" fill="#71717a" fontSize="8">192.168.10.102 :1514</text>
+                    <circle cx="164" cy="28" r="4" fill="#06b6d4" opacity="0.8">
+                        <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+                    </circle>
+                    <text x="12" y="60" fill="#52525b" fontSize="7" fontWeight="600" letterSpacing="0.1em">SIEM & LOG AGGREGATOR</text>
+                </g>
+
+                {/* Node: Ubuntu Agent */}
+                <g transform="translate(340, 430)">
+                    <rect width="140" height="50" rx="6" fill="#0a0a0a" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                    <rect width="140" height="1" y="0" rx="1" fill="#a3a3a3" opacity="0.3" />
+                    <rect x="10" y="11" width="28" height="28" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                    <text x="24" y="30" textAnchor="middle" fill="#d4d4d8" fontSize="11" fontWeight="800">UB</text>
+                    <text x="48" y="25" fill="#e4e4e7" fontSize="10" fontWeight="600">Ubuntu DMZ</text>
+                    <text x="48" y="37" fill="#71717a" fontSize="8">192.168.20.110</text>
+                    <circle cx="126" cy="25" r="3" fill="#4ade80" />
+                </g>
+
+                {/* Node: Lubuntu Agent */}
+                <g transform="translate(540, 430)">
+                    <rect width="140" height="50" rx="6" fill="#0a0a0a" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                    <rect width="140" height="1" y="0" rx="1" fill="#a3a3a3" opacity="0.3" />
+                    <rect x="10" y="11" width="28" height="28" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                    <text x="24" y="30" textAnchor="middle" fill="#d4d4d8" fontSize="11" fontWeight="800">LU</text>
+                    <text x="48" y="25" fill="#e4e4e7" fontSize="10" fontWeight="600">Lubuntu LAN</text>
+                    <text x="48" y="37" fill="#71717a" fontSize="8">192.168.10.102</text>
+                    <circle cx="126" cy="25" r="3" fill="#4ade80" />
+                </g>
+
+                {/* Node: Windows Agent */}
+                <g transform="translate(740, 430)">
+                    <rect width="140" height="50" rx="6" fill="#0a0a0a" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                    <rect width="140" height="1" y="0" rx="1" fill="#a3a3a3" opacity="0.3" />
+                    <rect x="10" y="11" width="28" height="28" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                    <text x="24" y="30" textAnchor="middle" fill="#d4d4d8" fontSize="11" fontWeight="800">W</text>
+                    <text x="48" y="25" fill="#e4e4e7" fontSize="10" fontWeight="600">Windows 10</text>
+                    <text x="48" y="37" fill="#71717a" fontSize="8">192.168.10.101</text>
+                    <circle cx="126" cy="25" r="3" fill="#4ade80" />
+                </g>
+
+                {/* ═══ CONNECTION LINES ═══ */}
+                {/* Kali -> pfSense */}
+                <path d="M 130 150 L 130 300 C 130 310, 200 310, 280 306" stroke="rgba(248,113,113,0.25)" strokeWidth="2" fill="none" strokeDasharray="5 4" />
+                {/* pfSense -> SafeLine WAF */}
+                <path d="M 440 306 C 480 300, 530 200, 560 150" stroke="rgba(251,146,60,0.25)" strokeWidth="2" fill="none" strokeDasharray="5 4" />
+                {/* SafeLine -> DVWA (short) */}
+                <line x1="605" y1="150" x2="605" y2="190" stroke="rgba(34,197,94,0.2)" strokeWidth="2" strokeDasharray="4 4" />
+                {/* pfSense -> LAN */}
+                <path d="M 360 330 L 360 370 C 360 400, 300 420, 260 455" stroke="rgba(34,211,238,0.2)" strokeWidth="2" fill="none" strokeDasharray="5 4" />
+                {/* Wazuh agent lines */}
+                <line x1="260" y1="455" x2="340" y2="455" stroke="rgba(6,182,212,0.15)" strokeWidth="1.5" strokeDasharray="4 4" />
+                <line x1="480" y1="455" x2="540" y2="455" stroke="rgba(6,182,212,0.15)" strokeWidth="1.5" strokeDasharray="4 4" />
+                <line x1="680" y1="455" x2="740" y2="455" stroke="rgba(6,182,212,0.15)" strokeWidth="1.5" strokeDasharray="4 4" />
+                {/* Suricata tap from DMZ */}
+                <line x1="690" y1="145" x2="750" y2="145" stroke="rgba(168,85,247,0.2)" strokeWidth="1.5" strokeDasharray="4 4" />
+
+                {/* ═══ ANIMATED PACKETS ═══ */}
+                {/* Attack packet: Kali -> pfSense -> WAF (blocked) */}
+                <circle r="5" fill="#ef4444" filter="url(#glow-red)">
+                    <animateMotion dur="3s" repeatCount="indefinite" id="atkDot">
+                        <mpath href="#atkPath" />
+                    </animateMotion>
+                    <animate attributeName="opacity" values="1;0.8;1" dur="0.5s" repeatCount="indefinite" />
+                </circle>
+                {/* Trail glow */}
+                <circle r="3" fill="#fca5a5" opacity="0.4">
+                    <animateMotion dur="3s" repeatCount="indefinite" begin="0.15s">
+                        <mpath href="#atkPath" />
+                    </animateMotion>
+                </circle>
+                
+                {/* Clean traffic: WAF -> DVWA */}
+                <circle r="4" fill="#4ade80" opacity="0.7">
+                    <animateMotion dur="1s" repeatCount="indefinite">
+                        <mpath href="#cleanPath" />
+                    </animateMotion>
+                </circle>
+
+                {/* Syslog: Agents -> Wazuh */}
+                <circle r="3" fill="#22d3ee" filter="url(#glow-cyan)" opacity="0.6">
+                    <animateMotion dur="2s" repeatCount="indefinite">
+                        <mpath href="#syslogPath" />
+                    </animateMotion>
+                </circle>
+
+            </svg>
+
+            {/* Premium Floating Legend */}
+            <div className="absolute bottom-4 right-4 bg-[#09090b]/90 border border-white/[0.06] rounded-lg p-4 text-sm space-y-3 backdrop-blur-xl shadow-2xl">
+                <div className="font-bold uppercase tracking-[0.15em] text-[9px] text-zinc-500 border-b border-white/[0.05] pb-2">Traffic Legend</div>
+                <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.8)]" />
+                    <span className="text-zinc-400 text-[10px] font-medium">Malicious Payload — BLOCKED</span>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.8)]" />
+                    <span className="text-zinc-400 text-[10px] font-medium">Clean Traffic — PASS</span>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                    <span className="text-zinc-400 text-[10px] font-medium">Syslog / Agent Telemetry</span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/* ─────────────────────────────────────────────────────────────
+   PAGE: WAF INSPECTOR  (SafeLine-style)
+   ───────────────────────────────────────────────────────────── */
+const WAFInspectorPage = () => {
+    const [url, setUrl] = useState("https://192.168.20.110:443/dvwa/");
+    const [body, setBody] = useState("");
+    const [method, setMethod] = useState("GET");
+    const [pipelineStage, setPipelineStage] = useState(0);
+
+    const attacks = [
+        { name: 'SQLi', m: 'GET', u: "https://192.168.20.110:443/dvwa/vulnerabilities/sqli/?id=1' OR '1'='1'--", b: "" },
+        { name: 'XSS', m: 'GET', u: "https://192.168.20.110:443/dvwa/vulnerabilities/xss_r/?name=<script>alert(1)</script>", b: "" },
+        { name: 'CMDi', m: 'POST', u: "https://192.168.20.110:443/dvwa/vulnerabilities/exec/", b: "ip=127.0.0.1|cat /etc/passwd" },
+        { name: 'Upload', m: 'POST', u: "https://192.168.20.110:443/dvwa/vulnerabilities/upload/", b: "filename=shell.php\n<?php system($_GET['cmd']); ?>" }
+    ];
+
+    const handleSend = () => {
+        setPipelineStage(0);
+        setTimeout(() => setPipelineStage(1), 400);
+        setTimeout(() => setPipelineStage(2), 1000);
+        setTimeout(() => setPipelineStage(3), 1600);
+        setTimeout(() => setPipelineStage(4), 2000);
+    };
+
+    const wafLogs = [
+        { id: 1247, time: '14:29:12', src: '192.168.30.100', method: 'GET', uri: "/dvwa/sqli/?id=1' OR '1'='1'--", status: 403, rule: '942100', risk: 'critical' },
+        { id: 1246, time: '14:28:55', src: '192.168.30.100', method: 'GET', uri: '/dvwa/vulnerabilities/xss_r/?name=<script>', status: 403, rule: '941100', risk: 'high' },
+        { id: 1245, time: '14:27:33', src: '192.168.30.100', method: 'POST', uri: '/dvwa/vulnerabilities/exec/', status: 403, rule: '932100', risk: 'critical' },
+        { id: 1244, time: '14:26:01', src: '192.168.10.102', method: 'GET', uri: '/dvwa/login.php', status: 200, rule: '-', risk: 'info' },
+        { id: 1243, time: '14:25:12', src: '192.168.10.102', method: 'GET', uri: '/dvwa/setup.php', status: 200, rule: '-', risk: 'info' },
+    ];
+
+    return (
+        <div className="space-y-4 animate-in fade-in duration-500">
+            {/* SafeLine-style header bar */}
+            <div className="flex items-center justify-between bg-[#0c0c0e] border border-white/[0.06] rounded-lg px-5 py-3">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 text-orange-400 font-bold text-sm"><Shield size={16}/> SafeLine WAF</div>
+                    <div className="h-4 w-px bg-white/10"/>
+                    <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">Protection Mode: <span className="text-green-400 font-bold">ACTIVE</span></span>
+                </div>
+                <div className="flex items-center gap-6 text-[10px] text-zinc-500 font-mono uppercase tracking-wider">
+                    <span>Blocked Today: <span className="text-red-400 font-bold">389</span></span>
+                    <span>Allowed: <span className="text-green-400 font-bold">12,491</span></span>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-230px)]">
+                {/* Request Builder */}
+                <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg flex flex-col overflow-hidden">
+                    <div className="px-4 py-2.5 border-b border-white/[0.06] text-[10px] font-bold text-zinc-400 uppercase tracking-widest bg-white/[0.01]">
+                        HTTP Request Builder
+                    </div>
+                    <div className="p-4 flex-1 overflow-y-auto space-y-4 custom-scrollbar">
+                        <div className="flex gap-1.5 flex-wrap">
+                            {attacks.map(a => (
+                                <button key={a.name} onClick={() => { setUrl(a.u); setBody(a.b); setMethod(a.m); setPipelineStage(0); }}
+                                    className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded text-[10px] font-mono border border-white/[0.05] transition-all">
+                                    {a.name}
+                                </button>
+                            ))}
+                        </div>
+                        <div>
+                            <label className="text-[9px] uppercase tracking-wider text-zinc-600 font-bold mb-1 block">Method & URI</label>
+                            <div className="flex gap-1.5">
+                                <select value={method} onChange={e=>setMethod(e.target.value)} className="bg-zinc-900 border border-white/[0.06] rounded px-2 text-[11px] font-mono text-zinc-300 outline-none w-16">
+                                    <option>GET</option><option>POST</option>
+                                </select>
+                                <input value={url} onChange={e=>setUrl(e.target.value)} className="bg-zinc-900 border border-white/[0.06] rounded px-2 py-1.5 text-[11px] text-zinc-300 font-mono flex-1 min-w-0 outline-none focus:border-orange-500/50"/>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-[9px] uppercase tracking-wider text-zinc-600 font-bold mb-1 block">Request Headers</label>
+                            <textarea readOnly value={"Host: 192.168.20.110:443\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64)\nCookie: security=low; PHPSESSID=abc123\nContent-Type: application/x-www-form-urlencoded"}
+                                className="w-full h-20 bg-zinc-900 border border-white/[0.06] rounded p-2 text-[10px] text-zinc-500 font-mono outline-none resize-none"/>
+                        </div>
+                        {method === 'POST' && (
+                            <div>
+                                <label className="text-[9px] uppercase tracking-wider text-zinc-600 font-bold mb-1 block">Request Body</label>
+                                <textarea value={body} onChange={e=>setBody(e.target.value)}
+                                    className="w-full h-24 bg-zinc-900 border border-white/[0.06] rounded p-2 text-[10px] text-green-400 font-mono outline-none resize-none focus:border-orange-500/50"/>
+                            </div>
+                        )}
+                    </div>
+                    <div className="p-3 border-t border-white/[0.06]">
+                        <button onClick={handleSend} className="w-full bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/40 text-orange-400 font-bold py-2 rounded text-[11px] tracking-wider uppercase flex items-center justify-center gap-2 transition-all">
+                            <Terminal size={12}/> Send Request
+                        </button>
+                    </div>
+                </div>
+
+                {/* Pipeline Inspection */}
+                <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg flex flex-col overflow-hidden">
+                    <div className="px-4 py-2.5 border-b border-white/[0.06] text-[10px] font-bold text-zinc-400 uppercase tracking-widest bg-white/[0.01]">
+                        Detection Pipeline
+                    </div>
+                    <div className="flex-1 flex flex-col items-center justify-center p-6 gap-3">
+                        {[
+                            { n: 1, label: 'Ingress Received', detail: `${method} ${(url.split('.110:443')[1] || '/').substring(0,40)}...`, active: pipelineStage >= 1, color: 'cyan' },
+                            { n: 2, label: 'Semantic Analysis', detail: 'CRS + AI Engine scoring...', active: pipelineStage >= 2, color: 'cyan' },
+                            { n: 3, label: 'Threat Pattern Match', detail: url.includes('id=') ? 'SQLi Sig: 942100 (Score: 25)' : url.includes('script') ? 'XSS Sig: 941100 (Score: 20)' : 'Payload Signature Matched', active: pipelineStage >= 3, color: 'red' },
+                            { n: 4, label: 'Verdict', detail: 'HTTP 403 Forbidden', active: pipelineStage >= 4, color: 'red' },
+                        ].map((stage, i) => (
+                            <React.Fragment key={i}>
+                                <div className={`w-full p-3 rounded border transition-all duration-500 ${stage.active ? (stage.color === 'red' ? 'bg-red-950/30 border-red-500/40' : 'bg-cyan-950/20 border-cyan-500/30') : 'bg-zinc-900/50 border-white/[0.04]'}`}>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className={`text-[9px] font-bold uppercase tracking-widest ${stage.active ? (stage.color === 'red' ? 'text-red-400' : 'text-cyan-400') : 'text-zinc-600'}`}>
+                                            {stage.n}. {stage.label}
+                                        </span>
+                                        {stage.active && <div className={`w-2 h-2 rounded-full ${stage.color === 'red' ? 'bg-red-500' : 'bg-cyan-400'}`}/>}
+                                    </div>
+                                    <div className={`text-[10px] font-mono truncate ${stage.active ? (stage.color === 'red' ? 'text-red-300' : 'text-cyan-300') : 'text-zinc-700'}`}>{stage.detail}</div>
+                                    {stage.n === 2 && stage.active && (
+                                        <div className="h-1 bg-zinc-800 rounded-full overflow-hidden mt-2">
+                                            <motion.div className="h-full bg-cyan-500" initial={{width:0}} animate={{width:'100%'}} transition={{duration:0.6}}/>
+                                        </div>
+                                    )}
+                                </div>
+                                {i < 3 && <div className={`h-3 border-l transition-colors ${pipelineStage > i+1 ? (i >= 2 ? 'border-red-500/40' : 'border-cyan-500/30') : 'border-white/[0.04]'}`}/>}
+                            </React.Fragment>
+                        ))}
+                        {pipelineStage >= 4 && (
+                            <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} className="w-full text-center p-3 bg-red-500/10 border border-red-500/50 rounded text-red-400 font-bold text-sm tracking-widest uppercase mt-2">
+                                ⛔ DROP — 403 FORBIDDEN
+                            </motion.div>
+                        )}
+                    </div>
+                </div>
+
+                {/* WAF Access Log */}
+                <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg flex flex-col overflow-hidden">
+                    <div className="px-4 py-2.5 border-b border-white/[0.06] text-[10px] font-bold text-zinc-400 uppercase tracking-widest bg-white/[0.01] flex justify-between items-center">
+                        <span>Access Log</span>
+                        <span className="text-zinc-600 font-normal normal-case">5 recent entries</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                        <table className="w-full text-left">
+                            <thead className="text-[9px] text-zinc-600 uppercase tracking-wider border-b border-white/[0.04] sticky top-0 bg-[#0c0c0e]">
+                                <tr>
+                                    <th className="px-3 py-2 font-bold">Time</th>
+                                    <th className="px-3 py-2 font-bold">Status</th>
+                                    <th className="px-3 py-2 font-bold">Rule</th>
+                                    <th className="px-3 py-2 font-bold">URI</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/[0.02]">
+                                {pipelineStage === 4 && (
+                                    <motion.tr initial={{opacity:0, backgroundColor:'rgba(239,68,68,0.1)'}} animate={{opacity:1, backgroundColor:'rgba(0,0,0,0)'}} className="text-[10px] font-mono">
+                                        <td className="px-3 py-2.5 text-zinc-500">Just now</td>
+                                        <td className="px-3 py-2.5"><Badge variant="critical">403</Badge></td>
+                                        <td className="px-3 py-2.5 text-red-400">{url.includes('id=') ? '942100' : url.includes('script') ? '941100' : '932100'}</td>
+                                        <td className="px-3 py-2.5 text-red-300 truncate max-w-[120px]">{(url.split('.110:443')[1] || '/').substring(0, 35)}</td>
+                                    </motion.tr>
+                                )}
+                                {wafLogs.map(log => (
+                                    <tr key={log.id} className="text-[10px] font-mono hover:bg-white/[0.01] transition-colors">
+                                        <td className="px-3 py-2.5 text-zinc-600">{log.time}</td>
+                                        <td className="px-3 py-2.5"><Badge variant={log.status === 403 ? 'critical' : 'success'}>{log.status}</Badge></td>
+                                        <td className={`px-3 py-2.5 ${log.status === 403 ? 'text-red-400' : 'text-zinc-600'}`}>{log.rule}</td>
+                                        <td className={`px-3 py-2.5 truncate max-w-[120px] ${log.status === 403 ? 'text-zinc-400' : 'text-zinc-600'}`}>{log.uri.substring(0, 35)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/* ─────────────────────────────────────────────────────────────
+   PAGE: SURICATA NIDS  (eve.json-style)
+   ───────────────────────────────────────────────────────────── */
+const SuricataData = [
+    { ts: '2024-03-15T14:32:07.441+0000', eid: 2024792, sid: 'ET SCAN Nmap -sV', sev: 1, proto: 'TCP', src: '192.168.30.100:42891', dst: '192.168.20.110:443', action: 'allowed' },
+    { ts: '2024-03-15T14:35:12.102+0000', eid: 2100498, sid: 'ET WEB_SERVER SQL Injection SELECT', sev: 1, proto: 'TCP', src: '192.168.30.100:43102', dst: '192.168.20.110:443', action: 'allowed' },
+    { ts: '2024-03-15T14:37:55.800+0000', eid: 2019284, sid: 'ET WEB_SERVER XSS Attempt', sev: 2, proto: 'TCP', src: '192.168.30.100:43201', dst: '192.168.20.110:443', action: 'allowed' },
+    { ts: '2024-03-15T14:40:01.888+0000', eid: 2024897, sid: 'ET EXPLOIT PHP File Upload', sev: 1, proto: 'TCP', src: '192.168.30.100:43380', dst: '192.168.20.110:443', action: 'allowed' },
+    { ts: '2024-03-15T14:42:15.000+0000', eid: 2001219, sid: 'GPL ATTACK_RESPONSE id check', sev: 2, proto: 'TCP', src: '192.168.20.110:8080', dst: '192.168.30.100:43380', action: 'allowed' },
+    { ts: '2024-03-15T14:44:30.120+0000', eid: 2010935, sid: 'ET SCAN SSH Brute Force', sev: 2, proto: 'TCP', src: '192.168.30.100:55102', dst: '192.168.10.102:22', action: 'allowed' },
+    { ts: '2024-03-15T14:50:33.211+0000', eid: 2013028, sid: 'ET POLICY curl User-Agent', sev: 3, proto: 'TCP', src: '192.168.10.102:38201', dst: '93.184.216.34:80', action: 'allowed' },
 ];
 
-const ResultsTableBlock = () => {
-    const [ref, inView] = useInView();
+const WazuhData = [
+    { ts: '2024-03-15T14:32:08', id: '550', level: 12, agent: 'Ubuntu-DMZ', group: 'ids,suricata', desc: 'Suricata: Alert - ET SCAN Nmap -sV detection', src: '192.168.30.100', rule: '86601' },
+    { ts: '2024-03-15T14:35:13', id: '551', level: 14, agent: 'Ubuntu-DMZ', group: 'ids,suricata', desc: 'Suricata: Alert - SQL Injection attempt detected', src: '192.168.30.100', rule: '86602' },
+    { ts: '2024-03-15T14:40:02', id: '552', level: 14, agent: 'Ubuntu-DMZ', group: 'ids,suricata', desc: 'Suricata: Alert - PHP file upload exploit', src: '192.168.30.100', rule: '86603' },
+    { ts: '2024-03-15T14:42:16', id: '553', level: 10, agent: 'Lubuntu-LAN', group: 'syslog,sshd', desc: 'sshd: authentication failure; user=admin', src: '192.168.30.100', rule: '5710' },
+    { ts: '2024-03-15T14:42:20', id: '554', level: 10, agent: 'Lubuntu-LAN', group: 'syslog,sshd', desc: 'sshd: authentication failure; user=root', src: '192.168.30.100', rule: '5710' },
+    { ts: '2024-03-15T14:50:34', id: '555', level: 3, agent: 'Windows-LAN', group: 'windows,logon', desc: 'Windows logon success (EventID 4624)', src: '192.168.10.101', rule: '60106' },
+    { ts: '2024-03-15T14:55:01', id: '556', level: 7, agent: 'Lubuntu-LAN', group: 'ossec,syscheck', desc: 'FIM: File modified - /root/test.txt', src: '-', rule: '550' },
+];
+
+const SiemPage = ({ title }) => {
+    const isSuricata = title.includes('Suricata');
+    const data = isSuricata ? SuricataData : WazuhData;
+
     return (
-        <section ref={ref} className="mb-28">
-            <h2 className={`text-2xl font-display font-bold text-white mb-2 text-center transition-all duration-500 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                WAF &amp; SIEM Test Results
-            </h2>
-            <p className={`text-slate-500 text-sm text-center mb-10 transition-all duration-500 delay-100 ${inView ? 'opacity-100' : 'opacity-0'}`}>
-                Real attack payloads tested against the defense stack
-            </p>
-            <div className="card-wrapper max-w-5xl mx-auto">
-                <div className="card-content overflow-x-auto">
-                    <table className="w-full text-sm" style={{ minWidth: 640 }}>
-                        <thead>
-                            <tr className="border-b border-white/10 text-left">
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Attack</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Payload</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tool</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Result</th>
-                            </tr>
+        <div className="space-y-4 animate-in fade-in duration-500">
+            {/* Tool Header Bar */}
+            <div className="flex items-center justify-between bg-[#0c0c0e] border border-white/[0.06] rounded-lg px-5 py-3">
+                <div className="flex items-center gap-4">
+                    <div className={`flex items-center gap-2 font-bold text-sm ${isSuricata ? 'text-purple-400' : 'text-cyan-400'}`}>
+                        {isSuricata ? <AlertTriangle size={16}/> : <Database size={16}/>} {title}
+                    </div>
+                    <div className="h-4 w-px bg-white/10"/>
+                    <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">
+                        {isSuricata ? 'eve.json • fast.log' : 'ossec-alerts • archives'}
+                    </span>
+                </div>
+                <div className="flex items-center gap-4 text-[10px] text-zinc-500 font-mono uppercase tracking-wider">
+                    <span>Events: <span className="text-zinc-300 font-bold">{data.length}</span></span>
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${isSuricata ? 'bg-purple-500/10 text-purple-400 border border-purple-500/30' : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30'}`}>
+                        {isSuricata ? 'IDS/IPS' : 'SIEM'}
+                    </span>
+                </div>
+            </div>
+
+            {/* KQL-style search */}
+            <div className="flex items-center gap-3 bg-[#0c0c0e] border border-white/[0.06] rounded-lg px-4 py-2">
+                <Crosshair size={14} className="text-zinc-600 shrink-0"/>
+                <input type="text" placeholder={isSuricata ? 'alert.signature: "ET*" AND src_ip: "192.168.30.*"' : 'rule.level: >=10 AND agent.name: "Ubuntu-DMZ"'}
+                    className="flex-1 bg-transparent text-[11px] text-zinc-300 font-mono outline-none placeholder:text-zinc-700"/>
+                <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-wider shrink-0">Last 24h</span>
+            </div>
+
+            {/* Data Table */}
+            <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg flex flex-col h-[calc(100vh-290px)] overflow-hidden">
+                <div className="flex-1 overflow-auto custom-scrollbar">
+                    <table className="w-full text-left whitespace-nowrap">
+                        <thead className="text-[9px] text-zinc-600 uppercase tracking-wider border-b border-white/[0.04] sticky top-0 bg-[#0c0c0e] z-10">
+                            {isSuricata ? (
+                                <tr>
+                                    <th className="px-4 py-3 font-bold">Timestamp</th>
+                                    <th className="px-4 py-3 font-bold">Sev</th>
+                                    <th className="px-4 py-3 font-bold">Signature</th>
+                                    <th className="px-4 py-3 font-bold">Proto</th>
+                                    <th className="px-4 py-3 font-bold">Src → Dst</th>
+                                    <th className="px-4 py-3 font-bold">Action</th>
+                                </tr>
+                            ) : (
+                                <tr>
+                                    <th className="px-4 py-3 font-bold">Timestamp</th>
+                                    <th className="px-4 py-3 font-bold">Level</th>
+                                    <th className="px-4 py-3 font-bold">Agent</th>
+                                    <th className="px-4 py-3 font-bold">Rule</th>
+                                    <th className="px-4 py-3 font-bold">Description</th>
+                                    <th className="px-4 py-3 font-bold">Source</th>
+                                </tr>
+                            )}
                         </thead>
-                        <tbody>
-                            {testResults.map((row, i) => (
-                                <tr
-                                    key={i}
-                                    className="border-b border-white/5 hover:bg-white/[0.03] transition-colors"
-                                    style={{
-                                        opacity: inView ? 1 : 0,
-                                        transform: inView ? 'translateY(0)' : 'translateY(12px)',
-                                        transition: `all 400ms ease-out ${i * 80}ms`,
-                                    }}
-                                >
-                                    <td className="px-6 py-4 text-slate-200 font-medium">{row.attack}</td>
-                                    <td className="px-6 py-4">
-                                        <code className="text-xs bg-slate-900/80 px-2.5 py-1 rounded border border-white/5 text-cyan-300 font-mono">
-                                            {row.payload}
-                                        </code>
-                                    </td>
-                                    <td className="px-6 py-4 text-slate-400">{row.tool}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center gap-2 text-xs font-bold ${row.status === 'red' ? 'text-red-400' : 'text-yellow-400'}`}>
-                                            <span>{row.emoji}</span>
-                                            {row.result}
+                        <tbody className="divide-y divide-white/[0.02]">
+                            {isSuricata ? SuricataData.map((r, i) => (
+                                <tr key={i} className="hover:bg-white/[0.015] transition-colors text-[10px] font-mono group">
+                                    <td className="px-4 py-3 text-zinc-600 group-hover:text-zinc-400">{r.ts.split('T')[1].split('+')[0]}</td>
+                                    <td className="px-4 py-3">
+                                        <span className={`inline-block w-5 h-5 rounded text-center leading-5 text-[9px] font-bold ${r.sev === 1 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : r.sev === 2 ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}>
+                                            {r.sev}
                                         </span>
                                     </td>
+                                    <td className="px-4 py-3 text-zinc-300 group-hover:text-white tracking-tight">{r.sid}</td>
+                                    <td className="px-4 py-3 text-zinc-500">{r.proto}</td>
+                                    <td className="px-4 py-3 text-zinc-500">
+                                        <span className="text-zinc-400">{r.src.split(':')[0]}</span>
+                                        <span className="text-zinc-700">:{r.src.split(':')[1]}</span>
+                                        <span className="text-zinc-600 mx-1">→</span>
+                                        <span className="text-zinc-400">{r.dst.split(':')[0]}</span>
+                                        <span className="text-zinc-700">:{r.dst.split(':')[1]}</span>
+                                    </td>
+                                    <td className="px-4 py-3 text-yellow-500/70 uppercase font-bold text-[9px]">{r.action}</td>
+                                </tr>
+                            )) : WazuhData.map((r, i) => (
+                                <tr key={i} className="hover:bg-white/[0.015] transition-colors text-[10px] font-mono group">
+                                    <td className="px-4 py-3 text-zinc-600 group-hover:text-zinc-400">{r.ts.split('T')[1]}</td>
+                                    <td className="px-4 py-3">
+                                        <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold ${r.level >= 12 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : r.level >= 7 ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}>
+                                            Lv.{r.level}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <span className="text-zinc-300">{r.agent}</span>
+                                        <span className="text-zinc-700 ml-1 text-[8px]">({r.group})</span>
+                                    </td>
+                                    <td className="px-4 py-3 text-cyan-400/70">{r.rule}</td>
+                                    <td className="px-4 py-3 text-zinc-400 tracking-tight group-hover:text-zinc-200 max-w-[300px] truncate">{r.desc}</td>
+                                    <td className="px-4 py-3 text-zinc-500">{r.src}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </section>
-    );
-};
-
-
-/* ═══════════════════════════════════════════════
-   BLOCK 6 — Monitoring Pipeline (animated data flow)
-   ═══════════════════════════════════════════════ */
-const pipelineStages = [
-    { lines: ['Network', 'Traffic'], color: '#64748b' },
-    { lines: ['Suricata'], color: '#a855f7' },
-    { lines: ['eve.json'], color: '#22c55e' },
-    { lines: ['Wazuh', 'Agent'], color: '#3b82f6' },
-    { lines: ['Wazuh', 'Manager'], color: '#22d3ee' },
-    { lines: ['Dashboard'], color: '#06b6d4' },
-];
-
-const PipelineBlock = () => {
-    const [ref, inView] = useInView();
-    return (
-        <section ref={ref} className="mb-28">
-            <h2 className={`text-2xl font-display font-bold text-white mb-2 text-center transition-all duration-500 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                Monitoring Pipeline
-            </h2>
-            <p className={`text-slate-500 text-sm text-center mb-10 transition-all duration-500 delay-100 ${inView ? 'opacity-100' : 'opacity-0'}`}>
-                Data flow from network capture to centralized dashboard
-            </p>
-            <div className={`card-wrapper max-w-5xl mx-auto transition-all duration-600 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-                <div className="card-content p-6 sm:p-10 overflow-x-auto">
-                    <svg viewBox="0 0 860 130" style={{ width: '100%', height: 'auto', minWidth: 640 }} xmlns="http://www.w3.org/2000/svg">
-                        {pipelineStages.map((stage, i) => {
-                            const x = 70 + i * 144;
-                            const c = stage.color;
-                            return (
-                                <g key={i}>
-                                    {/* Node box */}
-                                    <rect x={x - 52} y="30" width="104" height="56" rx="12"
-                                        fill={`${c}10`} stroke={c} strokeWidth="1.2" strokeOpacity="0.5" />
-                                    {/* Text lines */}
-                                    {stage.lines.map((line, li) => (
-                                        <text key={li} x={x} y={stage.lines.length === 1 ? 64 : 54 + li * 16}
-                                            textAnchor="middle"
-                                            style={{ fontSize: 11, fill: c, fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700 }}>
-                                            {line}
-                                        </text>
-                                    ))}
-                                    {/* Connector arrow */}
-                                    {i < pipelineStages.length - 1 && (
-                                        <>
-                                            <line x1={x + 52} y1="58" x2={x + 92} y2="58"
-                                                stroke="rgba(255,255,255,0.1)" strokeWidth="1.2" strokeDasharray="4 3" />
-                                            <polygon points={`${x + 88},54 ${x + 94},58 ${x + 88},62`} fill="rgba(255,255,255,0.15)" />
-                                        </>
-                                    )}
-                                </g>
-                            );
-                        })}
-                        {/* Animated flowing dot */}
-                        <circle r="5" fill="#22d3ee" opacity="0.9" style={{ filter: 'drop-shadow(0 0 8px rgba(34,211,238,0.8))' }}>
-                            <animateMotion dur="3s" repeatCount="indefinite" calcMode="linear"
-                                path={`M 70 58 L ${70 + 5 * 144} 58`} />
-                        </circle>
-                    </svg>
+                <div className="px-4 py-2.5 border-t border-white/[0.04] flex justify-between items-center text-[9px] text-zinc-600 font-mono tracking-wider bg-white/[0.01]">
+                    <span>Showing {data.length} events • Index: {isSuricata ? 'suricata-eve-*' : 'wazuh-alerts-*'}</span>
+                    <span>Cluster: soc-lab-001</span>
                 </div>
             </div>
-        </section>
-    );
-};
-
-
-/* ═══════════════════════════════════════════════
-   BLOCK 7 — Key Stats Strip
-   ═══════════════════════════════════════════════ */
-const stats = [
-    { value: 3, label: 'Network zones isolated', color: '#2dd4bf' },
-    { value: 5, label: 'Attack types blocked', color: '#ef4444' },
-    { value: 4, label: 'Security tools integrated', color: '#3b82f6' },
-    { value: 1, label: 'Centralized SIEM dashboard', color: '#22d3ee' },
-];
-
-/* Individual stat card — each is its own component so hooks are safe */
-const StatCard = ({ stat, index, inView }) => {
-    return (
-        <div
-            className="text-center p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm hover:bg-white/[0.04] transition-colors"
-            style={{
-                opacity: inView ? 1 : 0,
-                transform: inView ? 'translateY(0)' : 'translateY(24px)',
-                transition: `all 500ms ease-out ${index * 120}ms`,
-            }}
-        >
-            <div className="text-5xl font-display font-bold mb-3" style={{ color: stat.color }}>
-                <AnimatedCounter target={stat.value} inView={inView} />
-            </div>
-            <p className="text-slate-400 text-xs leading-snug">{stat.label}</p>
         </div>
     );
 };
 
-const StatsBlock = () => {
-    const [ref, inView] = useInView();
+/* ─────────────────────────────────────────────────────────────
+   PAGE: ATTACK TIMELINE (MITRE-style)
+   ───────────────────────────────────────────────────────────── */
+const TimelinePage = () => {
+    const events = [
+        { time: '14:28:01', phase: 'Reconnaissance', tactic: 'TA0043', src: 'Kali', tool: 'Nmap', desc: 'nmap -sV -O 192.168.20.110 — Port scan & OS fingerprinting', color: 'zinc' },
+        { time: '14:28:45', phase: 'Detection', tactic: 'DS0029', src: 'Suricata', tool: 'NIDS', desc: 'Alert: ET SCAN Nmap -sV detection (SID:2024792)', color: 'purple' },
+        { time: '14:29:12', phase: 'Initial Access', tactic: 'TA0001', src: 'Kali', tool: 'Burp Suite', desc: "SQLi payload: /sqli/?id=1' OR '1'='1'-- sent to DVWA", color: 'red' },
+        { time: '14:29:12', phase: 'Blocked', tactic: 'M0937', src: 'SafeLine', tool: 'WAF', desc: 'HTTP 403 — Rule 942100 matched, request dropped by WAF', color: 'orange' },
+        { time: '14:29:14', phase: 'Alert', tactic: 'DS0015', src: 'Wazuh', tool: 'SIEM', desc: 'Rule 86602 fired (Level 14) — SQL injection attempt correlated', color: 'cyan' },
+        { time: '14:35:00', phase: 'Credential Access', tactic: 'TA0006', src: 'Kali', tool: 'Hydra', desc: 'SSH brute force against 192.168.10.102 — 47 failed attempts', color: 'red' },
+        { time: '14:35:05', phase: 'Detection', tactic: 'DS0028', src: 'Wazuh', tool: 'SIEM', desc: 'Rule 5710 — Multiple authentication failures from 192.168.30.100', color: 'cyan' },
+    ];
+    const colorMap = { red: 'border-red-500/30 bg-red-500', orange: 'border-orange-500/30 bg-orange-500', cyan: 'border-cyan-500/30 bg-cyan-500', purple: 'border-purple-500/30 bg-purple-500', zinc: 'border-zinc-500/30 bg-zinc-500' };
+    const textMap = { red: 'text-red-400', orange: 'text-orange-400', cyan: 'text-cyan-400', purple: 'text-purple-400', zinc: 'text-zinc-400' };
+
     return (
-        <section ref={ref} className="mb-16">
-            <h2 className={`text-2xl font-display font-bold text-white mb-2 text-center transition-all duration-500 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                At a Glance
-            </h2>
-            <p className={`text-slate-500 text-sm text-center mb-10 transition-all duration-500 delay-100 ${inView ? 'opacity-100' : 'opacity-0'}`}>
-                Key metrics from the SOC Lab environment
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-                {stats.map((stat, i) => (
-                    <StatCard key={stat.label} stat={stat} index={i} inView={inView} />
-                ))}
+        <div className="space-y-4 animate-in fade-in duration-500">
+            <div className="flex items-center justify-between bg-[#0c0c0e] border border-white/[0.06] rounded-lg px-5 py-3">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 text-zinc-200 font-bold text-sm"><Clock size={16} className="text-cyan-400"/> Attack Timeline</div>
+                    <div className="h-4 w-px bg-white/10"/>
+                    <span className="text-[10px] text-zinc-500 font-mono">2024-03-15 • Incident #SOC-2024-0315</span>
+                </div>
+                <span className="text-[9px] bg-red-500/10 text-red-400 border border-red-500/30 px-2 py-0.5 rounded font-bold uppercase tracking-wider">7 Events</span>
             </div>
-        </section>
+
+            <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg p-6 overflow-y-auto custom-scrollbar h-[calc(100vh-250px)]">
+                <div className="relative border-l border-white/[0.08] ml-6 space-y-6 py-2">
+                    {events.map((ev, i) => (
+                        <motion.div key={i} initial={{opacity:0, x:-15}} animate={{opacity:1, x:0}} transition={{delay: i*0.1}} className="relative pl-8">
+                            <div className={`absolute -left-[5px] top-3 w-2.5 h-2.5 rounded-full ${colorMap[ev.color].split(' ')[1]} ring-4 ring-[#0c0c0e]`}/>
+                            <div className="flex items-start gap-4 group">
+                                <div className="w-14 pt-1 text-[10px] font-mono font-bold text-zinc-600 group-hover:text-zinc-400 shrink-0">{ev.time}</div>
+                                <div className="flex-1 bg-zinc-900/50 border border-white/[0.04] rounded-lg p-4 group-hover:border-white/[0.08] transition-all">
+                                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                        <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${colorMap[ev.color].split(' ')[0]} ${textMap[ev.color]}`}>{ev.phase}</span>
+                                        <span className="text-[9px] text-zinc-600 font-mono">{ev.tactic}</span>
+                                        <span className="text-[9px] text-zinc-500">•</span>
+                                        <span className="text-[9px] text-zinc-500 font-bold">{ev.src} ({ev.tool})</span>
+                                    </div>
+                                    <div className={`text-[11px] font-mono tracking-tight ${textMap[ev.color]} leading-relaxed`}>{ev.desc}</div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/* ─────────────────────────────────────────────────────────────
+   PAGE: FIREWALL RULES (pfSense-style)
+   ───────────────────────────────────────────────────────────── */
+const FirewallPage = () => {
+    const [activeIf, setActiveIf] = useState('DMZ');
+    const rules = {
+        LAN: [
+            { act: 'pass', proto: 'TCP', src: 'LAN net', dst: '192.168.10.102', port: '1514', desc: 'Allow Wazuh agent traffic to manager', states: '235/414' },
+            { act: 'pass', proto: 'ANY', src: 'LAN net', dst: '*', port: '*', desc: 'Default allow LAN to any', states: '12,050/24,100' },
+        ],
+        DMZ: [
+            { act: 'block', proto: 'ANY', src: 'DMZ net', dst: 'LAN net', port: '*', desc: 'Block DMZ → LAN (prevent lateral movement)', states: '47/47' },
+            { act: 'pass', proto: 'TCP', src: 'DMZ net', dst: 'LAN addr', port: '1514', desc: 'Allow DMZ → Wazuh Manager agent comms', states: '4,210/8,420' },
+            { act: 'pass', proto: 'TCP', src: '*', dst: '192.168.20.110', port: '443', desc: 'Allow HTTPS to SafeLine WAF vHost', states: '389/12,880' },
+            { act: 'pass', proto: 'TCP', src: '192.168.20.110', dst: '192.168.20.110', port: '8080', desc: 'WAF → DVWA reverse proxy (loopback)', states: '12,491/24,982' },
+        ],
+        TEST: [
+            { act: 'pass', proto: 'TCP', src: 'TEST net', dst: 'DMZ net', port: '443', desc: 'Allow TEST → DMZ HTTPS for attack sim', states: '1,247/2,494' },
+            { act: 'block', proto: 'ANY', src: 'TEST net', dst: 'LAN net', port: '*', desc: 'Block TEST → LAN (isolation)', states: '89/89' },
+        ],
+        WAN: [
+            { act: 'block', proto: 'ANY', src: '*', dst: '*', port: '*', desc: 'Default deny all inbound (RFC 4890)', states: '0/156' },
+        ],
+    };
+
+    return (
+        <div className="space-y-4 animate-in fade-in duration-500">
+            {/* pfSense-style header */}
+            <div className="flex items-center justify-between bg-[#0c0c0e] border border-white/[0.06] rounded-lg px-5 py-3">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 text-blue-400 font-bold text-sm"><Lock size={16}/> pfSense CE — Firewall Rules</div>
+                    <div className="h-4 w-px bg-white/10"/>
+                    <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">v2.7.0 • <span className="text-green-400 font-bold">UP</span> 14d 6h</span>
+                </div>
+                <span className="text-[10px] text-zinc-500 font-mono">Status: <span className="text-green-400 font-bold">Gateway Online</span></span>
+            </div>
+
+            {/* Interface Tabs */}
+            <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg overflow-hidden">
+                <div className="flex border-b border-white/[0.04] px-2 pt-2 bg-white/[0.01]">
+                    {['LAN', 'DMZ', 'TEST', 'WAN'].map(tab => (
+                        <button key={tab} onClick={() => setActiveIf(tab)}
+                            className={`px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest rounded-t transition-all ${activeIf === tab ? 'bg-[#0c0c0e] text-blue-400 border border-white/[0.06] border-b-transparent -mb-px' : 'text-zinc-600 hover:text-zinc-300'}`}>
+                            {tab} <span className="text-zinc-700 ml-1 font-normal">({(rules[tab] || []).length})</span>
+                        </button>
+                    ))}
+                </div>
+
+                <div className="overflow-auto custom-scrollbar">
+                    <table className="w-full text-left whitespace-nowrap">
+                        <thead className="text-[9px] text-zinc-600 uppercase tracking-wider border-b border-white/[0.04]">
+                            <tr>
+                                <th className="px-4 py-3 font-bold w-8"></th>
+                                <th className="px-4 py-3 font-bold">Action</th>
+                                <th className="px-4 py-3 font-bold">Proto</th>
+                                <th className="px-4 py-3 font-bold">Source</th>
+                                <th className="px-4 py-3 font-bold">Destination</th>
+                                <th className="px-4 py-3 font-bold">Port</th>
+                                <th className="px-4 py-3 font-bold">Description</th>
+                                <th className="px-4 py-3 font-bold">States</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.02]">
+                            {(rules[activeIf] || []).map((r, i) => (
+                                <tr key={i} className="hover:bg-white/[0.015] transition-colors text-[10px] font-mono group">
+                                    <td className="px-4 py-3">
+                                        <div className={`w-3 h-3 rounded ${r.act === 'pass' ? 'bg-green-500/30 border border-green-500/50' : 'bg-red-500/30 border border-red-500/50'}`}/>
+                                    </td>
+                                    <td className={`px-4 py-3 font-bold uppercase tracking-wider text-[9px] ${r.act === 'pass' ? 'text-green-400' : 'text-red-400'}`}>{r.act}</td>
+                                    <td className="px-4 py-3 text-zinc-500">{r.proto}</td>
+                                    <td className="px-4 py-3 text-zinc-400">{r.src}</td>
+                                    <td className="px-4 py-3 text-zinc-400">{r.dst}</td>
+                                    <td className={`px-4 py-3 ${r.port !== '*' ? 'text-cyan-400 font-bold' : 'text-zinc-600'}`}>{r.port}</td>
+                                    <td className="px-4 py-3 text-zinc-500 group-hover:text-zinc-300 tracking-tight max-w-[250px] truncate">{r.desc}</td>
+                                    <td className="px-4 py-3 text-zinc-600">{r.states}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                <div className="px-4 py-2.5 border-t border-white/[0.04] text-[9px] text-zinc-600 font-mono tracking-wider bg-white/[0.01] flex justify-between">
+                    <span>Interface: {activeIf}_NET • {(rules[activeIf] || []).length} rules loaded</span>
+                    <span>Last pfctl reload: 2024-03-15 14:27:55</span>
+                </div>
+            </div>
+        </div>
     );
 };
 
 
-/* ═══════════════════════════════════════════════
-   DOCUMENTATION — Project Overview
-   ═══════════════════════════════════════════════ */
-const OverviewBlock = () => {
-    const [ref, inView] = useInView();
+/* ─────────────────────────────────────────────────────────────
+   NATIVE TOOL SVG ICONS
+   ───────────────────────────────────────────────────────────── */
+const ToolIcon = ({ tool, size = 18 }) => {
+    const s = size;
+    const icons = {
+        pfSense: (c) => <svg viewBox="0 0 24 24" width={s} height={s} fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20"/><circle cx="5.5" cy="6.5" r="0.8" fill={c}/><circle cx="8.5" cy="6.5" r="0.8" fill={c}/><path d="M6 14h4M14 14h4M6 17h3M14 17h2"/><line x1="12" y1="9" x2="12" y2="20" strokeDasharray="2 2" opacity="0.4"/></svg>,
+        Suricata: (c) => <svg viewBox="0 0 24 24" width={s} height={s} fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><path d="M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="1" fill={c}/></svg>,
+        SafeLine: (c) => <svg viewBox="0 0 24 24" width={s} height={s} fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L3 7v6c0 5.5 3.8 10.3 9 11.5 5.2-1.2 9-6 9-11.5V7l-9-5z"/><path d="M8 12h8M8 15h5"/></svg>,
+        Wazuh: (c) => <svg viewBox="0 0 24 24" width={s} height={s} fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M2 8h20"/><circle cx="5" cy="5.5" r="0.7" fill={c}/><circle cx="7.5" cy="5.5" r="0.7" fill={c}/><circle cx="10" cy="5.5" r="0.7" fill={c}/><path d="M5 12l2 3 3-5 2 2 3-4 2 3" strokeWidth="1.4"/><rect x="5" y="17" width="3" height="2" rx="0.5" fill={c} opacity="0.3"/><rect x="10" y="16" width="3" height="3" rx="0.5" fill={c} opacity="0.3"/><rect x="15" y="15" width="3" height="4" rx="0.5" fill={c} opacity="0.3"/></svg>,
+        Kali: (c) => <svg viewBox="0 0 24 24" width={s} height={s} fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l8 4 8-4"/><path d="M4 4v16l8 -4 8 4V4"/><path d="M12 8v12"/><path d="M8 10l4 2 4-2"/></svg>,
+        DVWA: (c) => <svg viewBox="0 0 24 24" width={s} height={s} fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18"/><circle cx="6" cy="6" r="0.8" fill={c}/><circle cx="9" cy="6" r="0.8" fill={c}/><path d="M7 14l3 3 4-5"/></svg>,
+    };
+    const colorMap = { pfSense: '#3b82f6', Suricata: '#a855f7', SafeLine: '#f97316', Wazuh: '#06b6d4', Kali: '#ef4444', DVWA: '#22c55e' };
+    const render = icons[tool];
+    return render ? <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${colorMap[tool]}15`, border: `1px solid ${colorMap[tool]}30` }}>{render(colorMap[tool])}</div> : null;
+};
+
+/* ─────────────────────────────────────────────────────────────
+   DOC PAGE: MISSION BRIEFING (Executive Summary)
+   ───────────────────────────────────────────────────────────── */
+const ExecutiveDoc = () => {
     const objectives = [
         'Simulate a multi-zone enterprise network in a safe, virtualized environment',
         'Implement network segmentation using pfSense firewall with strict ACL rules',
@@ -655,300 +868,504 @@ const OverviewBlock = () => {
         'Centralize log monitoring with Wazuh SIEM for FIM, SSH brute-force detection, and compliance',
         'Validate the defense stack by executing real-world attack simulations from Kali Linux',
     ];
-
     return (
-        <section id="documentation" ref={ref} className="mb-28 scroll-mt-32">
-            <h2 className={`text-2xl font-display font-bold text-white mb-2 text-center transition-all duration-500 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                Project Documentation
-            </h2>
-            <p className={`text-slate-500 text-sm text-center mb-12 transition-all duration-500 delay-100 ${inView ? 'opacity-100' : 'opacity-0'}`}>
-                Comprehensive overview, configuration details, and key findings
-            </p>
-
-            <div className="max-w-4xl mx-auto space-y-8">
-                {/* Overview Card */}
-                <div style={{ opacity: inView ? 1 : 0, transform: inView ? 'translateY(0)' : 'translateY(20px)', transition: 'all 400ms ease-out' }}>
-                    <div className="card-wrapper">
-                        <div className="card-content p-8">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
-                                    <FileText size={18} className="text-cyan-400" />
-                                </div>
-                                <h3 className="font-display font-bold text-lg text-white">Project Overview</h3>
-                            </div>
-                            <p className="text-slate-400 text-sm leading-relaxed mb-6">
-                                This project demonstrates an end-to-end Security Operations Center (SOC) lab built entirely using open-source tools in a virtualized environment. The lab simulates a real enterprise network divided into three isolated zones — LAN, DMZ, and TEST — connected through a pfSense firewall. Each zone serves a distinct purpose: the LAN hosts the Wazuh SIEM manager along with endpoint clients, the DMZ exposes a deliberately vulnerable web application (DVWA) behind a SafeLine WAF, and the TEST zone provides an attacker machine (Kali Linux) for controlled penetration testing.
-                            </p>
-                            <p className="text-slate-400 text-sm leading-relaxed mb-8">
-                                The primary goal is to validate a layered defense-in-depth strategy by launching real attack payloads and verifying that each security layer — firewall rules, intrusion detection signatures, WAF filters, and SIEM alerts — responds correctly.
-                            </p>
-
-                            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Objectives</h4>
-                            <ul className="space-y-3">
-                                {objectives.map((obj, i) => (
-                                    <li key={i} className="flex items-start gap-3 text-sm text-slate-300" style={{ opacity: inView ? 1 : 0, transform: inView ? 'translateX(0)' : 'translateX(-20px)', transition: `all 400ms ease-out ${200 + i * 80}ms` }}>
-                                        <span className="w-5 h-5 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 mt-0.5 text-[10px] text-cyan-400 font-bold">{i + 1}</span>
-                                        {obj}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
+        <div className="space-y-8 animate-in fade-in duration-500 max-w-5xl mx-auto py-6 overflow-y-auto custom-scrollbar h-[calc(100vh-180px)]">
+            {/* Hero banner */}
+            <div className="bg-gradient-to-br from-cyan-900/20 to-black border border-white/[0.05] rounded-xl p-8 relative overflow-hidden">
+                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
+                <Badge variant="info" className="w-fit mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20 text-[10px] tracking-widest px-2 py-0.5">Mission Briefing</Badge>
+                <h1 className="text-3xl font-bold text-white mb-4 tracking-tight">Full-Stack SOC Laboratory</h1>
+                <p className="text-sm text-zinc-400 max-w-3xl leading-relaxed mb-4">
+                    An enterprise-grade, virtualized security laboratory designed to simulate advanced persistent threats (APTs)
+                    and validate defensive capabilities using industry-standard open-source tools. The lab simulates a real enterprise
+                    network divided into three isolated zones — LAN, DMZ, and TEST — connected through a pfSense firewall.
+                </p>
+                <p className="text-sm text-zinc-400 max-w-3xl leading-relaxed mb-6">
+                    The primary goal is to validate a layered defense-in-depth strategy by launching real attack payloads and verifying
+                    that each security layer — firewall rules, intrusion detection signatures, WAF filters, and SIEM alerts — responds correctly.
+                </p>
+                <div className="flex gap-3">
+                    <a href="https://github.com/nishasorallikar/SOC-Lab-Network-Segmentation-Threat-Detection" target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-lg px-4 py-2 text-xs font-bold transition-all group">
+                        <Github size={14}/> View on GitHub <ChevronRight size={12} className="text-zinc-500 group-hover:text-white"/>
+                    </a>
                 </div>
+            </div>
 
-                {/* Environment Card */}
-                <div style={{ opacity: inView ? 1 : 0, transform: inView ? 'translateY(0)' : 'translateY(20px)', transition: 'all 400ms ease-out 200ms' }}>
-                    <div className="card-wrapper">
-                        <div className="card-content p-8">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                                    <Server size={18} className="text-blue-400" />
-                                </div>
-                                <h3 className="font-display font-bold text-lg text-white">Lab Environment</h3>
-                            </div>
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div>
-                                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Platform</h4>
-                                    <ul className="space-y-2 text-sm text-slate-400">
-                                        <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Hypervisor: Oracle VirtualBox 7.x</li>
-                                        <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Host OS: Windows 11</li>
-                                        <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>VMs: 5 virtual machines total</li>
-                                        <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Internal networks: 3 isolated subnets</li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Network Addressing</h4>
-                                    <div className="space-y-2 font-mono text-xs">
-                                        <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-teal-500/5 border border-teal-500/10">
-                                            <span className="w-2 h-2 rounded-full bg-teal-400"></span>
-                                            <span className="text-teal-300">LAN</span>
-                                            <span className="text-slate-500 ml-auto">192.168.10.0/24</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-amber-500/5 border border-amber-500/10">
-                                            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                                            <span className="text-amber-300">DMZ</span>
-                                            <span className="text-slate-500 ml-auto">192.168.20.0/24</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-500/5 border border-red-500/10">
-                                            <span className="w-2 h-2 rounded-full bg-red-400"></span>
-                                            <span className="text-red-300">TEST</span>
-                                            <span className="text-slate-500 ml-auto">192.168.30.0/24</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            {/* Objectives */}
+            <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg p-6">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-5 flex items-center gap-2"><Target size={14} className="text-cyan-400"/> Project Objectives</h3>
+                <ul className="space-y-3">
+                    {objectives.map((obj, i) => (
+                        <li key={i} className="flex items-start gap-3 text-xs text-zinc-300">
+                            <span className="w-5 h-5 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 mt-0.5 text-[9px] text-cyan-400 font-bold">{i + 1}</span>
+                            {obj}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            {/* Lab Environment */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg p-6">
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2"><Server size={14} className="text-blue-400"/> Platform</h3>
+                    <ul className="space-y-2.5 text-xs text-zinc-400">
+                        <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"/><span className="text-zinc-300 font-medium">Hypervisor:</span> Oracle VirtualBox 7.x</li>
+                        <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"/><span className="text-zinc-300 font-medium">Host OS:</span> Windows 11</li>
+                        <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"/><span className="text-zinc-300 font-medium">VMs:</span> 5 virtual machines total</li>
+                        <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"/><span className="text-zinc-300 font-medium">Networks:</span> 3 isolated subnets</li>
+                    </ul>
+                </div>
+                <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg p-6">
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-4">Network Addressing</h3>
+                    <div className="space-y-2 font-mono text-[11px]">
+                        <div className="flex items-center gap-3 px-3 py-2 rounded bg-cyan-500/5 border border-cyan-500/10"><span className="w-2 h-2 rounded-full bg-cyan-400"/><span className="text-cyan-300 font-bold">LAN</span><span className="text-zinc-500 ml-auto">192.168.10.0/24</span></div>
+                        <div className="flex items-center gap-3 px-3 py-2 rounded bg-orange-500/5 border border-orange-500/10"><span className="w-2 h-2 rounded-full bg-orange-400"/><span className="text-orange-300 font-bold">DMZ</span><span className="text-zinc-500 ml-auto">192.168.20.0/24</span></div>
+                        <div className="flex items-center gap-3 px-3 py-2 rounded bg-red-500/5 border border-red-500/10"><span className="w-2 h-2 rounded-full bg-red-400"/><span className="text-red-300 font-bold">TEST</span><span className="text-zinc-500 ml-auto">192.168.30.0/24</span></div>
                     </div>
                 </div>
             </div>
-        </section>
-    );
-};
 
-
-/* ═══════════════════════════════════════════════
-   DOCUMENTATION — Tool Configurations
-   ═══════════════════════════════════════════════ */
-const toolConfigs = [
-    {
-        name: 'pfSense Firewall',
-        color: '#3b82f6',
-        icon: (c) => <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20"/><circle cx="5.5" cy="6.5" r="0.8" fill={c}/><circle cx="8.5" cy="6.5" r="0.8" fill={c}/><path d="M6 14h4M14 14h4M6 17h3M14 17h2"/><line x1="12" y1="9" x2="12" y2="20" strokeDasharray="2 2" opacity="0.4"/></svg>,
-        desc: 'Acts as the central router between all three zones. Configured with strict ACL rules to control inter-zone traffic flow and NAT for outbound connectivity.',
-        config: [
-            '# Interface Assignments',
-            'LAN  → vtnet1 → 192.168.10.1/24',
-            'DMZ  → vtnet2 → 192.168.20.1/24',
-            'TEST → vtnet3 → 192.168.30.1/24',
-            '',
-            '# Firewall Rules (simplified)',
-            'PASS  TEST → DMZ:443    # Allow WAF access',
-            'PASS  TEST → DMZ:8080   # Allow DVWA',
-            'BLOCK TEST → LAN:*      # Isolate attacker',
-            'PASS  LAN  → ANY        # LAN full access',
-        ],
-    },
-    {
-        name: 'Suricata IDS',
-        color: '#a855f7',
-        icon: (c) => <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="1" fill={c}/></svg>,
-        desc: 'Deployed on the pfSense box monitoring the DMZ interface. Uses ET Open rulesets for signature-based detection. Outputs structured alerts to eve.json for Wazuh ingestion.',
-        config: [
-            '# /etc/suricata/suricata.yaml',
-            'af-packet:',
-            '  - interface: vtnet2  # DMZ iface',
-            '',
-            'rule-files:',
-            '  - et-open.rules',
-            '  - custom-nids.rules',
-            '',
-            '# eve-log output → /var/log/suricata/eve.json',
-            '# Forwarded to Wazuh Agent via ossec.conf',
-        ],
-    },
-    {
-        name: 'SafeLine WAF',
-        color: '#f59e0b',
-        icon: (c) => <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L3 7v6c0 5.5 3.8 10.3 9 11.5 5.2-1.2 9-6 9-11.5V7l-9-5z"/><path d="M8 12h8M8 15h5"/></svg>,
-        desc: 'Deployed as a reverse proxy in the DMZ zone on port 443. All traffic to DVWA (:8080) is routed through SafeLine for inspection. Blocks SQLi, XSS, CMDi, LFI, and malicious file uploads using semantic analysis.',
-        config: [
-            '# SafeLine Configuration',
-            'Listen Port:     443 (HTTPS)',
-            'Upstream:        127.0.0.1:8080 (DVWA)',
-            'Mode:            Reverse Proxy',
-            '',
-            '# Protection Modules Enabled',
-            '✓ SQL Injection Detection',
-            '✓ XSS Filter (reflected + stored)',
-            '✓ Command Injection Blocker',
-            '✓ Path Traversal / LFI Guard',
-            '✓ File Upload Scanner',
-        ],
-    },
-    {
-        name: 'Wazuh SIEM',
-        color: '#22d3ee',
-        icon: (c) => <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M2 8h20"/><circle cx="5" cy="5.5" r="0.7" fill={c}/><circle cx="7.5" cy="5.5" r="0.7" fill={c}/><path d="M5 12l2 3 3-5 2 2 3-4 2 3" strokeWidth="1.4"/><rect x="5" y="17" width="3" height="2" rx="0.5" fill={c} opacity="0.3"/><rect x="10" y="16" width="3" height="3" rx="0.5" fill={c} opacity="0.3"/></svg>,
-        desc: 'Wazuh Manager runs on the LAN zone, collecting logs from agents deployed on DVWA server and pfSense. Provides centralized alerting, file integrity monitoring (FIM), and SSH brute-force detection.',
-        config: [
-            '# /var/ossec/etc/ossec.conf (Agent)',
-            '<localfile>',
-            '  <log_format>json</log_format>',
-            '  <location>/var/log/suricata/eve.json</location>',
-            '</localfile>',
-            '',
-            '# FIM Configuration',
-            '<syscheck>',
-            '  <directories check_all="yes">/var/www</directories>',
-            '  <frequency>300</frequency>',
-            '</syscheck>',
-        ],
-    },
-];
-
-const ToolConfigBlock = () => {
-    const [ref, inView] = useInView();
-    return (
-        <section ref={ref} className="mb-28">
-            <h2 className={`text-2xl font-display font-bold text-white mb-2 text-center transition-all duration-500 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                Tool Configuration
-            </h2>
-            <p className={`text-slate-500 text-sm text-center mb-12 transition-all duration-500 delay-100 ${inView ? 'opacity-100' : 'opacity-0'}`}>
-                How each security tool was deployed and configured
-            </p>
-
-            <div className="max-w-4xl mx-auto space-y-6">
-                {toolConfigs.map((tool, i) => {
-                    return (
-                        <div key={tool.name} style={{ opacity: inView ? 1 : 0, transform: inView ? 'translateY(0)' : 'translateY(24px)', transition: `all 500ms ease-out ${i * 120}ms` }}>
-                            <div className="card-wrapper">
-                                <div className="card-content p-8">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${tool.color}15`, border: `1px solid ${tool.color}30` }}>
-                                            {tool.icon(tool.color)}
-                                        </div>
-                                        <h3 className="font-display font-bold text-lg text-white">{tool.name}</h3>
-                                        <div className="w-2 h-2 rounded-full soc-pulse-dot ml-auto" style={{ background: tool.color }}></div>
-                                    </div>
-                                    <p className="text-slate-400 text-sm leading-relaxed mb-6">{tool.desc}</p>
-
-                                    {/* Terminal-style config */}
-                                    <div className="bg-black/60 rounded-xl border border-white/5 overflow-hidden">
-                                        <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-white/5 bg-black/40">
-                                            <div className="w-2.5 h-2.5 rounded-full bg-red-500/60"></div>
-                                            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60"></div>
-                                            <div className="w-2.5 h-2.5 rounded-full bg-green-500/60"></div>
-                                            <span className="text-[10px] text-slate-600 ml-2 font-mono">{tool.name.toLowerCase().replace(/ /g, '_')}.conf</span>
-                                        </div>
-                                        <pre className="p-4 font-mono text-xs leading-relaxed overflow-x-auto custom-scrollbar">
-                                            {tool.config.map((line, li) => (
-                                                <div key={li} style={{ opacity: inView ? 1 : 0, transition: `opacity 300ms ease-out ${400 + i * 120 + li * 40}ms` }}>
-                                                    {line.startsWith('#') || line.startsWith('//') ? (
-                                                        <span className="text-slate-600">{line}</span>
-                                                    ) : line.startsWith('✓') ? (
-                                                        <span className="text-green-400">{line}</span>
-                                                    ) : line.startsWith('PASS') ? (
-                                                        <span><span className="text-green-400">PASS </span><span className="text-slate-300">{line.slice(5)}</span></span>
-                                                    ) : line.startsWith('BLOCK') ? (
-                                                        <span><span className="text-red-400">BLOCK</span><span className="text-slate-300">{line.slice(5)}</span></span>
-                                                    ) : line === '' ? (
-                                                        <br />
-                                                    ) : (
-                                                        <span className="text-slate-300">{line}</span>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </pre>
-                                    </div>
-                                </div>
+            {/* Tools Overview with native icons */}
+            <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg p-6">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-5">Security Stack</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[
+                        { tool: 'pfSense', role: 'Firewall & Router', desc: 'Network segmentation · ACL rules · NAT' },
+                        { tool: 'Suricata', role: 'IDS/IPS Engine', desc: 'Deep packet inspection · signature detection' },
+                        { tool: 'SafeLine', role: 'Web Application Firewall', desc: 'SQLi · XSS · CMDi · LFI blocking' },
+                        { tool: 'Wazuh', role: 'SIEM & Log Aggregator', desc: 'Log collection · FIM · SSH monitoring' },
+                        { tool: 'Kali', role: 'Attacker Workstation', desc: 'Nmap · Burp Suite · Hydra · Metasploit' },
+                        { tool: 'DVWA', role: 'Vulnerable Target', desc: 'Deliberately vulnerable web application' },
+                    ].map(t => (
+                        <div key={t.tool} className="flex items-center gap-3 p-3 rounded-lg bg-zinc-900/50 border border-white/[0.04] hover:border-white/[0.08] transition-all group">
+                            <ToolIcon tool={t.tool}/>
+                            <div>
+                                <div className="text-xs font-bold text-zinc-200 group-hover:text-white">{t.tool} <span className="text-zinc-600 font-normal">— {t.role}</span></div>
+                                <div className="text-[10px] text-zinc-600">{t.desc}</div>
                             </div>
                         </div>
-                    );
-                })}
+                    ))}
+                </div>
             </div>
-        </section>
+        </div>
     );
 };
 
+/* ─────────────────────────────────────────────────────────────
+   DOC PAGE: ARCHITECTURE & TOOL CONFIGURATION
+   ───────────────────────────────────────────────────────────── */
+const ArchitectureDoc = () => {
+    const toolConfigs = [
+        { tool: 'pfSense', name: 'pfSense Firewall', desc: 'Acts as the central router between all three zones. Configured with strict ACL rules to control inter-zone traffic flow and NAT for outbound connectivity.',
+          config: ['# Interface Assignments','LAN  → vtnet1 → 192.168.10.1/24','DMZ  → vtnet2 → 192.168.20.1/24','TEST → vtnet3 → 192.168.30.1/24','','# Firewall Rules (simplified)','PASS  TEST → DMZ:443    # Allow WAF access','PASS  TEST → DMZ:8080   # Allow DVWA','BLOCK TEST → LAN:*      # Isolate attacker','PASS  LAN  → ANY        # LAN full access'] },
+        { tool: 'Suricata', name: 'Suricata IDS', desc: 'Deployed on the pfSense box monitoring the DMZ interface. Uses ET Open rulesets for signature-based detection. Outputs structured alerts to eve.json for Wazuh ingestion.',
+          config: ['# /etc/suricata/suricata.yaml','af-packet:','  - interface: vtnet2  # DMZ iface','','rule-files:','  - et-open.rules','  - custom-nids.rules','','# eve-log output → /var/log/suricata/eve.json','# Forwarded to Wazuh Agent via ossec.conf'] },
+        { tool: 'SafeLine', name: 'SafeLine WAF', desc: 'Deployed as a reverse proxy in the DMZ zone on port 443. All traffic to DVWA (:8080) is routed through SafeLine for inspection.',
+          config: ['# SafeLine Configuration','Listen Port:     443 (HTTPS)','Upstream:        127.0.0.1:8080 (DVWA)','Mode:            Reverse Proxy','','# Protection Modules Enabled','✓ SQL Injection Detection','✓ XSS Filter (reflected + stored)','✓ Command Injection Blocker','✓ Path Traversal / LFI Guard','✓ File Upload Scanner'] },
+        { tool: 'Wazuh', name: 'Wazuh SIEM', desc: 'Wazuh Manager runs on the LAN zone, collecting logs from agents deployed on DVWA server and pfSense. Provides centralized alerting, FIM, and SSH brute-force detection.',
+          config: ['# /var/ossec/etc/ossec.conf (Agent)','<localfile>','  <log_format>json</log_format>','  <location>/var/log/suricata/eve.json</location>','</localfile>','','# FIM Configuration','<syscheck>','  <directories check_all="yes">/var/www</directories>','  <frequency>300</frequency>','</syscheck>'] },
+    ];
 
-/* ═══════════════════════════════════════════════
-   DOCUMENTATION — Key Findings & Lessons
-   ═══════════════════════════════════════════════ */
-const findings = [
-    { title: 'WAF Blocked 100% of OWASP Top 5 Attacks', desc: 'SafeLine WAF successfully blocked SQLi, XSS, command injection, file inclusion, and malicious file uploads without any false negatives during controlled testing.', color: '#22c55e' },
-    { title: 'Suricata Detected ET Open Signatures in Real-Time', desc: 'Suricata\'s ET Open ruleset flagged test traffic to testmynids.org within seconds, generating structured eve.json alerts that Wazuh ingested immediately.', color: '#a855f7' },
-    { title: 'Wazuh FIM Caught Unauthorized File Changes', desc: 'File Integrity Monitoring detected new file creation and modification events in /var/www within the configured 300-second scan interval.', color: '#22d3ee' },
-    { title: 'Network Segmentation Prevented Lateral Movement', desc: 'pfSense ACL rules ensured the Kali attacker in the TEST zone could not access the LAN zone directly, demonstrating effective network isolation.', color: '#3b82f6' },
-    { title: 'SSH Brute-Force Detected After 5 Attempts', desc: 'Wazuh\'s active response module flagged repeated failed SSH login attempts from the TEST zone, triggering rule ID 5712 alerts in the dashboard.', color: '#f59e0b' },
-    { title: 'End-to-End Visibility Achieved', desc: 'By forwarding Suricata and system logs to Wazuh, a single dashboard provided complete visibility across all three network zones — from network-level intrusions to application-layer attacks.', color: '#ef4444' },
-];
-
-const FindingsBlock = () => {
-    const [ref, inView] = useInView();
     return (
-        <section ref={ref} className="mb-28">
-            <h2 className={`text-2xl font-display font-bold text-white mb-2 text-center transition-all duration-500 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                Key Findings &amp; Lessons Learned
-            </h2>
-            <p className={`text-slate-500 text-sm text-center mb-12 transition-all duration-500 delay-100 ${inView ? 'opacity-100' : 'opacity-0'}`}>
-                Critical observations from the SOC Lab testing and monitoring phase
-            </p>
+        <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto py-6 overflow-y-auto custom-scrollbar h-[calc(100vh-180px)]">
+            <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-3"><Network size={20} className="text-cyan-400"/> Architecture & Tool Configuration</h2>
 
-            <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-5">
-                {findings.map((f, i) => (
-                    <div key={i} className="p-6 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] transition-colors group"
-                        style={{ opacity: inView ? 1 : 0, transform: inView ? 'translateY(0)' : 'translateY(20px)', transition: `all 400ms ease-out ${i * 100}ms` }}>
+            {/* Detection Pipeline */}
+            <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg p-6">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-5">Detection Pipeline</h3>
+                <div className="flex items-center gap-3 overflow-x-auto pb-2">
+                    {[
+                        { tool: 'Kali', label: 'Attack Traffic', color: '#ef4444' },
+                        { tool: 'pfSense', label: 'Firewall ACL', color: '#3b82f6' },
+                        { tool: 'SafeLine', label: 'WAF Inspection', color: '#f97316' },
+                        { tool: 'Suricata', label: 'NIDS Analysis', color: '#a855f7' },
+                        { tool: 'Wazuh', label: 'SIEM Correlation', color: '#06b6d4' },
+                    ].map((s, i) => (
+                        <React.Fragment key={i}>
+                            <div className="flex flex-col items-center gap-2 shrink-0 px-3">
+                                <ToolIcon tool={s.tool} size={22}/>
+                                <span className="text-[10px] font-bold text-zinc-300">{s.tool}</span>
+                                <span className="text-[9px] text-zinc-600">{s.label}</span>
+                            </div>
+                            {i < 4 && <div className="w-8 h-px shrink-0" style={{background: `linear-gradient(to right, ${s.color}40, ${['#3b82f6','#f97316','#a855f7','#06b6d4','#06b6d4'][i]}40)`}}/>}
+                        </React.Fragment>
+                    ))}
+                </div>
+            </div>
+
+            {/* Tool Configuration Cards */}
+            {toolConfigs.map((tc, i) => (
+                <div key={i} className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg overflow-hidden">
+                    <div className="p-5 border-b border-white/[0.04]">
+                        <div className="flex items-center gap-3 mb-3">
+                            <ToolIcon tool={tc.tool}/>
+                            <div>
+                                <h3 className="text-sm font-bold text-white">{tc.name}</h3>
+                                <p className="text-[10px] text-zinc-500">{tc.desc}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {/* Terminal config */}
+                    <div className="bg-black/60">
+                        <div className="flex items-center gap-1.5 px-4 py-2 border-b border-white/[0.04]">
+                            <div className="w-2 h-2 rounded-full bg-red-500/60"/>
+                            <div className="w-2 h-2 rounded-full bg-yellow-500/60"/>
+                            <div className="w-2 h-2 rounded-full bg-green-500/60"/>
+                            <span className="text-[9px] text-zinc-600 ml-2 font-mono">{tc.name.toLowerCase().replace(/ /g, '_')}.conf</span>
+                        </div>
+                        <pre className="p-4 font-mono text-[10px] leading-relaxed overflow-x-auto custom-scrollbar">
+                            {tc.config.map((line, li) => (
+                                <div key={li}>
+                                    {line.startsWith('#') || line.startsWith('//') ? (
+                                        <span className="text-zinc-600">{line}</span>
+                                    ) : line.startsWith('✓') ? (
+                                        <span className="text-green-400">{line}</span>
+                                    ) : line.startsWith('PASS') ? (
+                                        <span><span className="text-green-400">PASS </span><span className="text-zinc-300">{line.slice(5)}</span></span>
+                                    ) : line.startsWith('BLOCK') ? (
+                                        <span><span className="text-red-400">BLOCK</span><span className="text-zinc-300">{line.slice(5)}</span></span>
+                                    ) : line === '' ? (
+                                        <br/>
+                                    ) : (
+                                        <span className="text-zinc-300">{line}</span>
+                                    )}
+                                </div>
+                            ))}
+                        </pre>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+/* ─────────────────────────────────────────────────────────────
+   DOC PAGE: ATTACK PLAYBOOK
+   ───────────────────────────────────────────────────────────── */
+const AttackDoc = () => {
+    const testResults = [
+        { attack: 'Command injection', payload: '127.0.0.1; whoami', tool: 'SafeLine', result: 'Blocked', status: 'red' },
+        { attack: 'File inclusion', payload: '?page=../../../etc', tool: 'SafeLine', result: 'Blocked', status: 'red' },
+        { attack: 'File upload', payload: 'php-reverse-shell.php', tool: 'SafeLine', result: 'Blocked', status: 'red' },
+        { attack: 'SQL injection', payload: "admin' OR '1'='1", tool: 'SafeLine', result: 'Blocked', status: 'red' },
+        { attack: 'XSS', payload: "<script>alert('XSS')</script>", tool: 'SafeLine', result: 'Blocked', status: 'red' },
+        { attack: 'NIDS test traffic', payload: 'curl testmynids.org', tool: 'Suricata', result: 'Detected', status: 'yellow' },
+        { attack: 'SSH brute force', payload: 'ssh wronguser@host', tool: 'Wazuh', result: 'Detected', status: 'yellow' },
+        { attack: 'FIM — file created', payload: 'touch samplefile.txt', tool: 'Wazuh', result: 'Detected', status: 'yellow' },
+    ];
+
+    return (
+        <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto py-6 overflow-y-auto custom-scrollbar h-[calc(100vh-180px)]">
+            <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-3"><Terminal size={20} className="text-red-400"/> Execution Playbook</h2>
+
+            {/* Attack Phases */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {[
+                    { phase: 'Reconnaissance', desc: 'Nmap OS & Service Discovery', tool: 'Kali', detail: 'nmap -sV -O -p- 192.168.20.110', result: 'Identified exposed ports 80/443 (HTTP/S).' },
+                    { phase: 'Web Exploitation', desc: 'SQLi / XSS / CMDi / Upload', tool: 'Kali', detail: "sqlmap -u 'http://target/sqli/?id=1' --dbs", result: 'All payloads blocked by SafeLine WAF (403).' },
+                    { phase: 'Credential Access', desc: 'SSH Brute Force via Hydra', tool: 'Kali', detail: 'hydra -l admin -P rockyou.txt ssh://192.168.10.102', result: 'Wazuh detected after 5 failed attempts (Rule 5712).' },
+                    { phase: 'Lateral Movement', desc: 'Pivoting from DMZ to LAN', tool: 'Kali', detail: 'run autoroute -s 192.168.10.0/24', result: 'Denied by pfSense DMZ→LAN strict firewall rules.' },
+                ].map((a, i) => (
+                    <div key={i} className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg p-5">
                         <div className="flex items-center gap-2 mb-3">
-                            <div className="w-2.5 h-2.5 rounded-full soc-pulse-dot" style={{ background: f.color }}></div>
-                            <h3 className="font-display font-bold text-sm text-white group-hover:text-cyan-400 transition-colors">{f.title}</h3>
+                            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-red-500/10 border border-red-500/30 text-red-400">Phase {i+1}</span>
+                            <ToolIcon tool={a.tool} size={16}/>
                         </div>
-                        <p className="text-slate-400 text-xs leading-relaxed">{f.desc}</p>
+                        <h3 className="text-sm font-bold text-white mb-1">{a.phase}</h3>
+                        <div className="text-[11px] text-zinc-500 mb-3">{a.desc}</div>
+                        <div className="bg-black/60 border border-white/[0.04] rounded p-3 font-mono text-[10px] text-zinc-300 mb-3">
+                            <span className="text-red-400">$ </span>{a.detail}
+                        </div>
+                        <div className="text-[11px] font-bold text-green-400 flex items-center gap-2"><Shield size={12}/> {a.result}</div>
                     </div>
                 ))}
             </div>
-        </section>
+
+            {/* WAF & SIEM Test Results Table */}
+            <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg overflow-hidden">
+                <div className="px-5 py-3 border-b border-white/[0.04] text-sm font-bold text-zinc-300 flex items-center gap-2">
+                    <Shield size={14} className="text-orange-400"/> WAF & SIEM Test Results
+                    <span className="text-[9px] text-zinc-600 font-normal ml-auto">{testResults.length} payloads tested</span>
+                </div>
+                <table className="w-full text-left">
+                    <thead className="text-[9px] text-zinc-600 uppercase tracking-wider border-b border-white/[0.04]">
+                        <tr>
+                            <th className="px-4 py-2.5 font-bold">Attack</th>
+                            <th className="px-4 py-2.5 font-bold">Payload</th>
+                            <th className="px-4 py-2.5 font-bold">Tool</th>
+                            <th className="px-4 py-2.5 font-bold">Result</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.02]">
+                        {testResults.map((row, i) => (
+                            <tr key={i} className="hover:bg-white/[0.015] transition-colors text-[10px] font-mono">
+                                <td className="px-4 py-2.5 text-zinc-300 font-medium">{row.attack}</td>
+                                <td className="px-4 py-2.5"><code className="text-[9px] bg-zinc-900 px-1.5 py-0.5 rounded border border-white/[0.04] text-cyan-300">{row.payload}</code></td>
+                                <td className="px-4 py-2.5 text-zinc-400 flex items-center gap-2"><ToolIcon tool={row.tool} size={14}/> {row.tool}</td>
+                                <td className="px-4 py-2.5"><span className={`text-[9px] font-bold ${row.status === 'red' ? 'text-red-400' : 'text-yellow-400'}`}>🛡 {row.result}</span></td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     );
 };
 
-
-/* ═══════════════════════════════════════════════
-   MAIN PAGE
-   ═══════════════════════════════════════════════ */
-const SOCLabProject = () => {
-    useEffect(() => { window.scrollTo(0, 0); }, []);
+/* ─────────────────────────────────────────────────────────────
+   DOC PAGE: RESULTS & KEY FINDINGS
+   ───────────────────────────────────────────────────────────── */
+const FindingsDoc = () => {
+    const findings = [
+        { title: 'WAF Blocked 100% of OWASP Top 5 Attacks', desc: 'SafeLine WAF successfully blocked SQLi, XSS, command injection, file inclusion, and malicious file uploads without any false negatives during controlled testing.', color: '#22c55e', tool: 'SafeLine' },
+        { title: 'Suricata Detected ET Open Signatures in Real-Time', desc: "Suricata's ET Open ruleset flagged test traffic to testmynids.org within seconds, generating structured eve.json alerts that Wazuh ingested immediately.", color: '#a855f7', tool: 'Suricata' },
+        { title: 'Wazuh FIM Caught Unauthorized File Changes', desc: 'File Integrity Monitoring detected new file creation and modification events in /var/www within the configured 300-second scan interval.', color: '#22d3ee', tool: 'Wazuh' },
+        { title: 'Network Segmentation Prevented Lateral Movement', desc: 'pfSense ACL rules ensured the Kali attacker in the TEST zone could not access the LAN zone directly, demonstrating effective network isolation.', color: '#3b82f6', tool: 'pfSense' },
+        { title: 'SSH Brute-Force Detected After 5 Attempts', desc: "Wazuh's active response module flagged repeated failed SSH login attempts from the TEST zone, triggering rule ID 5712 alerts in the dashboard.", color: '#f59e0b', tool: 'Wazuh' },
+        { title: 'End-to-End Visibility Achieved', desc: 'By forwarding Suricata and system logs to Wazuh, a single dashboard provided complete visibility across all three network zones.', color: '#ef4444', tool: 'Wazuh' },
+    ];
 
     return (
-        <div className="max-w-6xl mx-auto">
-            <HeroBlock />
-            <TopologyBlock />
-            <DefenseBlock />
-            <AttackFlowBlock />
-            <ResultsTableBlock />
-            <PipelineBlock />
-            <StatsBlock />
-            <OverviewBlock />
-            <ToolConfigBlock />
-            <FindingsBlock />
+        <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto py-6 overflow-y-auto custom-scrollbar h-[calc(100vh-180px)]">
+            <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-3"><FileText size={20} className="text-cyan-400"/> Results & Key Findings</h2>
+
+            {/* Stats Strip */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                    { val: '3', lbl: 'Network Zones Isolated', color: '#2dd4bf' },
+                    { val: '5+', lbl: 'Attack Types Blocked', color: '#ef4444' },
+                    { val: '4', lbl: 'Security Tools Integrated', color: '#3b82f6' },
+                    { val: '<1s', lbl: 'Alert Latency', color: '#22d3ee' },
+                ].map((s, i) => (
+                    <div key={i} className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg p-5 text-center group hover:border-white/[0.1] transition-all">
+                        <div className="text-3xl font-mono font-bold mb-1" style={{color: s.color}}>{s.val}</div>
+                        <div className="text-[9px] uppercase tracking-widest font-bold text-zinc-600">{s.lbl}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Findings Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {findings.map((f, i) => (
+                    <div key={i} className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg p-5 hover:border-white/[0.1] transition-all group">
+                        <div className="flex items-center gap-3 mb-3">
+                            <ToolIcon tool={f.tool} size={16}/>
+                            <h3 className="text-xs font-bold text-zinc-200 group-hover:text-white transition-colors flex-1">{f.title}</h3>
+                        </div>
+                        <p className="text-[10px] text-zinc-500 leading-relaxed">{f.desc}</p>
+                    </div>
+                ))}
+            </div>
+
+            {/* Conclusion */}
+            <div className="bg-[#0c0c0e] border border-white/[0.06] rounded-lg p-6 relative">
+                <div className="absolute left-0 inset-y-0 w-1 bg-gradient-to-b from-cyan-500 to-transparent rounded-l"/>
+                <h3 className="text-sm font-bold text-white mb-4 tracking-tight">Project Conclusion</h3>
+                <div className="space-y-4 text-xs text-zinc-400 leading-relaxed">
+                    <p>
+                        This laboratory successfully demonstrated the value of defense-in-depth architecture.
+                        By deploying segmented networks alongside strategically placed detection mechanisms (WAF, NIDS, SIEM),
+                        we achieved comprehensive visibility into attack lifecycles.
+                    </p>
+                    <p>
+                        The integration of Suricata alerts into Wazuh Manager proved highly effective for correlating
+                        network-level anomalies with endpoint activities. Future iterations of this lab could incorporate
+                        SOAR (Security Orchestration, Automation, and Response) tools to automatically ban malicious IPs
+                        upon detection.
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/* ─────────────────────────────────────────────────────────────
+   PAGE: BOOT SEQUENCE & SHELL (PREMIUM SIDEBAR)
+   ───────────────────────────────────────────────────────────── */
+const SOCLabProject = () => {
+    const [activePage, setActivePage] = useState('Network Map');
+    const [isBooting, setIsBooting] = useState(true);
+
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        const timer = setTimeout(() => setIsBooting(false), 2000);
+        return () => {
+            document.body.style.overflow = 'auto';
+            clearTimeout(timer);
+        };
+    }, []);
+    
+    const labPages = [
+        { id: 'Live Overview', icon: LayoutDashboard },
+        { id: 'Network Map', icon: Network },
+        { id: 'WAF Inspector', icon: Shield },
+        { id: 'Suricata NIDS', icon: AlertTriangle },
+        { id: 'Wazuh SIEM', icon: Database },
+        { id: 'Threat Timeline', icon: Clock },
+        { id: 'Firewall Policy', icon: ServerCrash }
+    ];
+
+    const docPages = [
+        { id: 'Mission Briefing', icon: FileText },
+        { id: 'Architecture Map', icon: Network },
+        { id: 'Attack Playbook', icon: Terminal },
+        { id: 'Results & ROI', icon: Activity }
+    ];
+
+    return (
+        <div className="h-screen w-screen bg-[#050505] text-zinc-300 font-sans flex flex-col overflow-hidden selection:bg-cyan-500/30">
+            {/* Boot Sequence Overlay */}
+            <AnimatePresence>
+                {isBooting && (
+                    <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }} 
+                        className="absolute inset-0 z-50 bg-[#050505] flex flex-col items-center justify-center font-mono text-cyan-400">
+                        <Terminal size={48} className="mb-6 animate-pulse drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
+                        <div className="text-xl tracking-[0.3em] uppercase mb-4 font-bold drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">Initializing SOC Terminal</div>
+                        <div className="w-64 h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                            <motion.div initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: 1.5, ease: "easeInOut" }} className="h-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,1)]" />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Top Statusbar */}
+            <div className="h-12 bg-[#09090b]/80 backdrop-blur-xl border-b border-white/[0.05] flex items-center justify-between px-6 text-[10px] font-mono uppercase tracking-widest shrink-0 shadow-xl relative z-20">
+                <div className="flex items-center gap-8">
+                    <Link to="/" className="flex items-center gap-2 text-zinc-500 hover:text-cyan-400 transition-colors group relative overflow-hidden">
+                        <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                        Exit Terminal
+                    </Link>
+                    <span className="flex items-center gap-2 text-cyan-400 font-bold px-3 py-1 bg-cyan-500/10 rounded-full border border-cyan-500/30">
+                        <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_5px_rgba(34,211,238,1)]"/> LIVE SIMULATION
+                    </span>
+                    <span className="text-zinc-500 hidden md:inline">Alerts Today: <span className="text-zinc-200 font-bold ml-1">1,247</span></span>
+                    <span className="text-zinc-500 hidden md:inline">Critical: <span className="text-red-400 font-bold ml-1">23</span></span>
+                    <span className="text-zinc-500 hidden lg:inline">Agents Online: <span className="text-green-400 font-bold ml-1">3/3</span></span>
+                </div>
+                <div className="text-zinc-500 flex items-center gap-6">
+                    <a href="https://github.com/nishasorallikar/SOC-Lab-Network-Segmentation-Threat-Detection" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-white transition-colors group">
+                        <Github size={14} className="group-hover:text-cyan-400 transition-colors" /> GitHub Repo
+                    </a>
+                    <div className="flex items-center gap-3">
+                        Sys_Time: <span className="text-zinc-200 font-bold">{(new Date()).toISOString().split('T')[1].split('.')[0]} UTC</span>
+                        <div className="w-3 h-3 rounded-full border-2 border-zinc-700 border-t-cyan-400 animate-spin ml-2"/>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex flex-1 overflow-hidden relative">
+                {/* Global Background Grid */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(34,211,238,0.03)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_left,rgba(248,113,113,0.02)_0%,transparent_50%)] pointer-events-none z-0" />
+
+                {/* Left Sidebar (Premium Vertical Layout) */}
+                <div className="w-64 bg-white/[0.01] backdrop-blur-2xl border-r border-white/[0.05] flex flex-col py-8 shadow-[10px_0_30px_-15px_rgba(0,0,0,0.8)] z-10 overflow-y-auto custom-scrollbar relative">
+                    {/* Subtle left glow */}
+                    <div className="absolute left-0 inset-y-0 w-[1px] bg-gradient-to-b from-transparent via-cyan-500/20 to-transparent" />
+                    
+                    {/* Project Title Header */}
+                    <div className="px-6 mb-8">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.15)]">
+                                <Shield size={18} className="text-cyan-400" />
+                            </div>
+                            <div>
+                                <div className="text-[9px] font-mono text-cyan-400 uppercase tracking-[0.2em] font-bold">SOC Lab Project</div>
+                                <div className="text-[10px] text-zinc-500 font-medium">Network Security</div>
+                            </div>
+                        </div>
+                        <div className="text-sm font-bold text-white leading-snug tracking-tight">Network Segmentation<br/><span className="text-zinc-400 font-medium">&amp; Threat Detection</span></div>
+                        <div className="h-px w-full bg-gradient-to-r from-cyan-500/40 via-cyan-500/10 to-transparent mt-4" />
+                    </div>
+
+                    <div className="px-8 mb-4 text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-600 flex items-center gap-2">
+                        <LayoutDashboard size={10}/> Data Feed
+                    </div>
+                    <nav className="space-y-1 mb-8">
+                        {labPages.map(p => {
+                            const active = activePage === p.id;
+                            const Icon = p.icon;
+                            return (
+                                <button key={p.id} onClick={() => setActivePage(p.id)}
+                                    className={`w-full flex items-center gap-4 px-8 py-3 text-[11px] font-bold uppercase tracking-widest transition-all duration-300 text-left group relative
+                                        ${active ? 'bg-gradient-to-r from-cyan-500/20 to-transparent text-cyan-400' : 'text-zinc-400 hover:bg-white/[0.03] hover:text-zinc-200'}`}>
+                                    
+                                    {/* Premium Active Indicator */}
+                                    <AnimatePresence>
+                                        {active && (
+                                            <motion.div layoutId="sidebar-active" className="absolute left-0 inset-y-0 w-1 bg-cyan-400 shadow-[0_0_15px_cyan]" />
+                                        )}
+                                    </AnimatePresence>
+
+                                    <Icon size={16} className={`transition-transform duration-300 ${active ? 'text-cyan-400 drop-shadow-[0_0_8px_cyan]' : 'text-zinc-600 group-hover:text-cyan-400 group-hover:drop-shadow-[0_0_8px_cyan] group-hover:translate-x-1'}`}/>
+                                    <span className="relative z-10">{p.id}</span>
+                                </button>
+                            );
+                        })}
+                    </nav>
+
+                    <div className="px-8 mb-4 text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-600 flex items-center gap-2">
+                        <FileText size={10}/> Library Context
+                    </div>
+                    <nav className="space-y-1">
+                        {docPages.map(p => {
+                            const active = activePage === p.id;
+                            const Icon = p.icon;
+                            return (
+                                <button key={p.id} onClick={() => setActivePage(p.id)}
+                                    className={`w-full flex items-center gap-4 px-8 py-3 text-[11px] font-bold uppercase tracking-widest transition-all duration-300 text-left group relative
+                                        ${active ? 'bg-gradient-to-r from-orange-500/20 to-transparent text-orange-400' : 'text-zinc-400 hover:bg-white/[0.03] hover:text-zinc-200'}`}>
+                                    
+                                    {/* Premium Active Indicator for Docs */}
+                                    <AnimatePresence>
+                                        {active && (
+                                            <motion.div layoutId="sidebar-active" className="absolute left-0 inset-y-0 w-1 bg-orange-400 shadow-[0_0_15px_orange]" />
+                                        )}
+                                    </AnimatePresence>
+
+                                    <Icon size={16} className={`transition-transform duration-300 ${active ? 'text-orange-400 drop-shadow-[0_0_8px_orange]' : 'text-zinc-600 group-hover:text-orange-400 group-hover:drop-shadow-[0_0_8px_orange] group-hover:translate-x-1'}`}/>
+                                    <span className="relative z-10">{p.id}</span>
+                                </button>
+                            );
+                        })}
+                    </nav>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-8 relative z-10 custom-scrollbar scroll-smooth">
+                    <AnimatePresence mode="wait">
+                        <motion.div key={activePage} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.3 }} className="h-full flex flex-col">
+                            <div className="mb-6 flex items-center gap-3 text-zinc-500 text-[10px] font-bold font-mono uppercase tracking-[0.2em] bg-white/[0.02] backdrop-blur-md border border-white/[0.05] w-fit px-5 py-2.5 rounded-full shadow-2xl relative overflow-hidden">
+                                <span className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-white/[0.2] to-transparent" />
+                                <span className="text-zinc-600">SOC</span> <ChevronRight size={10} className="text-zinc-700"/> 
+                                <span className={activePage.includes('Briefing') || activePage.includes('Map') || activePage.includes('Playbook') || activePage.includes('Results') ? 'text-orange-400 drop-shadow-[0_0_5px_orange]' : 'text-cyan-400 drop-shadow-[0_0_5px_cyan]'}>{activePage}</span>
+                            </div>
+                            
+                            {/* LAB PAGES */}
+                            {activePage === 'Live Overview' && <OverviewPage />}
+                            {activePage === 'Network Map' && <NetworkMapPage />}
+                            {activePage === 'WAF Inspector' && <WAFInspectorPage />}
+                            {activePage === 'Suricata NIDS' && <SiemPage title="Suricata NIDS" />}
+                            {activePage === 'Wazuh SIEM' && <SiemPage title="Wazuh SIEM" />}
+                            {activePage === 'Threat Timeline' && <TimelinePage />}
+                            {activePage === 'Firewall Policy' && <FirewallPage />}
+
+                            {/* DOC PAGES */}
+                            {activePage === 'Mission Briefing' && <ExecutiveDoc />}
+                            {activePage === 'Architecture Map' && <ArchitectureDoc />}
+                            {activePage === 'Attack Playbook' && <AttackDoc />}
+                            {activePage === 'Results & ROI' && <FindingsDoc />}
+
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </div>
+            
+            <style jsx global>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(34,211,238,0.5); }
+            `}</style>
         </div>
     );
 };

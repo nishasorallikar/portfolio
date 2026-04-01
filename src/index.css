@@ -56,7 +56,7 @@
 
 /* --- 2. Mouse Follower Spotlight --- */
 .cursor-spotlight {
-    background: radial-gradient(600px circle at var(--x, 50%) var(--y, 50%), rgba(29, 78, 216, 0.15), transparent 80%);
+    background: radial-gradient(circle 600px at var(--x, 50%) var(--y, 50%), rgba(29, 78, 216, 0.15), transparent 80%);
     position: fixed;
     inset: 0;
     pointer-events: none;
@@ -123,7 +123,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(255, 255, 255, 0.3), transparent 40%);
+    background: radial-gradient(circle 400px at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(255, 255, 255, 0.3), transparent 40%);
     opacity: 0;
     transition: opacity 0.3s;
     z-index: 10;
