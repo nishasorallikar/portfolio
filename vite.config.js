@@ -7,10 +7,22 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'lucide-react'],
-        }
+        manualChunks(id) {
+          // Split vendor deps into granular chunks for better caching
+          if (id.includes('node_modules')) {
+            if (id.includes('framer-motion')) return 'framer';
+            if (id.includes('react-router')) return 'router';
+            if (id.includes('lucide-react')) return 'icons';
+            if (id.includes('react-dom') || id.includes('/react/')) return 'react-vendor';
+          }
+        },
       }
-    }
-  }
+    },
+    // Use esbuild (built-in, no install needed)
+    target: 'es2020',
+    minify: 'esbuild',
+  },
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
 })

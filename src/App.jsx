@@ -1,14 +1,14 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
-import Home from './pages/Home';
 
-// Lazy load non-critical routes for code splitting
+// Lazy load ALL page components for code splitting
+const Home = lazy(() => import('./pages/Home'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const SOCLabProject = lazy(() => import('./pages/SOCLabProject'));
 
-import CSACourseLayout from './layouts/CSACourseLayout';
+const CSACourseLayout = lazy(() => import('./layouts/CSACourseLayout'));
 const CSADashboard = lazy(() => import('./pages/csa/CSADashboard'));
 const CSAModuleDetails = lazy(() => import('./pages/csa/CSAModuleDetails'));
 const CSAPracticeExam = lazy(() => import('./pages/csa/CSAPracticeExam'));
@@ -30,7 +30,7 @@ const PageLoader = () => (
 function App() {
     return (
         <Routes>
-            <Route path="/" element={<MainLayout><Home /></MainLayout>} />
+            <Route path="/" element={<MainLayout><Suspense fallback={<PageLoader />}><Home /></Suspense></MainLayout>} />
             <Route path="/blog" element={
                 <MainLayout>
                     <Suspense fallback={<PageLoader />}>
