@@ -228,7 +228,7 @@ const skills = [
 const Hero = () => {
     const handleDownload = () => {
         toast.success('Opening Resume...');
-        window.open('https://drive.google.com/drive/folders/1f8lE_bkAtoWt54MpXuMcrPBspVEy8XNK?usp=sharing', '_blank');
+        window.open('https://drive.google.com/file/d/1c4lgy2IoAXquCpoZrLl2-MJbfACxPgid/view?usp=drivesdk', '_blank');
     };
 
     const scrollToWork = () => {
