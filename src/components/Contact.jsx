@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Linkedin, Phone, Sparkles, Send, ArrowUpRight, FileText } from 'lucide-react';
+import { Mail, Linkedin, Sparkles, Send, ArrowUpRight, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -143,13 +143,6 @@ const contactLinks = [
         href: 'https://linkedin.com/in/nisha-sorallikar',
         color: '#3b82f6',
         external: true,
-    },
-    {
-        icon: Phone,
-        label: 'Phone',
-        value: '+91 87928 03740',
-        href: 'tel:+918792803740',
-        color: '#a855f7',
     },
     {
         icon: FileText,
