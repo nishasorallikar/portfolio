@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Linkedin, Phone, Sparkles, Send, ArrowUpRight } from 'lucide-react';
+import { Mail, Linkedin, Phone, Sparkles, Send, ArrowUpRight, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -150,6 +150,14 @@ const contactLinks = [
         value: '+91 87928 03740',
         href: 'tel:+918792803740',
         color: '#a855f7',
+    },
+    {
+        icon: FileText,
+        label: 'Resume',
+        value: 'Download PDF',
+        href: 'https://drive.google.com/file/d/1K8sj0vT2jy3n6GrR0kjz4TzvPcLO0TE1/view?usp=sharing',
+        color: '#10b981',
+        external: true,
     },
 ];
 
