@@ -113,6 +113,87 @@ const Work = () => {
                     </Link>
                 </motion.div>
 
+                {/* Phishing Detection Pipeline Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.1, duration: 0.6 }}
+                >
+                    <Link to="/project/phishing-detection-pipeline" className="group block cursor-pointer relative">
+                        <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-500">
+                            {/* Animated top accent line */}
+                            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-teal-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            
+                            {/* Glow effect */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-teal-500/[0.03] via-transparent to-red-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                            <div className="relative z-10 p-8 md:p-10 grid md:grid-cols-2 gap-8 items-center">
+                                <div>
+                                    {/* Tags */}
+                                    <div className="flex gap-2 mb-5 flex-wrap">
+                                        <span className="px-3 py-1 bg-teal-500/10 border border-teal-500/20 text-teal-300 text-[11px] font-semibold rounded-full tracking-wide uppercase">Phishing</span>
+                                        <span className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-300 text-[11px] font-semibold rounded-full tracking-wide uppercase">Email Security</span>
+                                    </div>
+
+                                    <h3 className="text-2xl md:text-3xl font-display font-bold mb-4 text-white group-hover:text-teal-400 transition-colors duration-300 leading-tight">
+                                        Phishing Detection Pipeline — Automated Email Threat Triage
+                                    </h3>
+                                    <p className="text-slate-400 text-sm mb-6 max-w-md leading-relaxed">
+                                        Automated phishing analysis system that ingests suspicious emails, parses headers and URLs, detonates attachments in a sandbox, and generates structured IOC reports using VirusTotal and URLScan APIs.
+                                    </p>
+
+                                    {/* Tech tags */}
+                                    <div className="flex flex-wrap gap-2 mb-8">
+                                        {['Python', 'VirusTotal API', 'URLScan.io', 'YARA', 'TheHive', 'Postfix', 'Docker'].map(tag => (
+                                            <span key={tag} className="px-2.5 py-1 bg-slate-800/60 rounded-lg border border-white/[0.06] text-[10px] text-slate-400 font-medium group-hover:border-teal-500/20 group-hover:text-slate-300 transition-all duration-300">
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+
+                                    <span className="inline-flex items-center gap-2 text-teal-400 text-sm font-semibold group-hover:gap-3 transition-all duration-300">
+                                        Analyze Phishing Pipeline <ArrowRight size={14} />
+                                    </span>
+                                </div>
+
+                                {/* Flow Diagram Visual */}
+                                <div className="hidden md:flex items-center justify-center">
+                                    <div className="relative w-full max-w-[300px]">
+                                        <svg viewBox="0 0 300 180" className="w-full h-auto opacity-50 group-hover:opacity-90 transition-opacity duration-500" xmlns="http://www.w3.org/2000/svg">
+                                            {/* Nodes */}
+                                            <rect x="20" y="70" width="45" height="35" rx="6" fill="#0f172a" stroke="#2dd4bf" strokeWidth="1.5" />
+                                            <text x="42.5" y="92" textAnchor="middle" style={{ fontSize: 8, fill: '#2dd4bf', fontWeight: 700 }}>Inbox</text>
+
+                                            <rect x="95" y="70" width="45" height="35" rx="6" fill="#0f172a" stroke="#2dd4bf" strokeWidth="1.5" />
+                                            <text x="117.5" y="92" textAnchor="middle" style={{ fontSize: 8, fill: '#2dd4bf', fontWeight: 700 }}>Parser</text>
+
+                                            <rect x="170" y="70" width="45" height="35" rx="6" fill="#0f172a" stroke="#2dd4bf" strokeWidth="1.5" />
+                                            <text x="192.5" y="92" textAnchor="middle" style={{ fontSize: 8, fill: '#2dd4bf', fontWeight: 700 }}>Scanner</text>
+
+                                            <rect x="245" y="70" width="45" height="35" rx="6" fill="#0f172a" stroke="#ef4444" strokeWidth="1.5" />
+                                            <text x="267.5" y="92" textAnchor="middle" style={{ fontSize: 8, fill: '#ef4444', fontWeight: 700 }}>Verdict</text>
+
+                                            {/* Arrows */}
+                                            <path d="M 65 87.5 L 95 87.5" stroke="#2dd4bf" strokeWidth="1" strokeDasharray="3 3" />
+                                            <path d="M 140 87.5 L 170 87.5" stroke="#2dd4bf" strokeWidth="1" strokeDasharray="3 3" />
+                                            <path d="M 215 87.5 L 245 87.5" stroke="#ef4444" strokeWidth="1" strokeDasharray="3 3" />
+
+                                            {/* Animated Packet */}
+                                            <circle r="3" fill="#ef4444" style={{ filter: 'drop-shadow(0 0 4px rgba(239,68,68,0.6))' }}>
+                                                <animateMotion dur="3s" repeatCount="indefinite" path="M 42.5 87.5 L 117.5 87.5 L 192.5 87.5 L 267.5 87.5" calcMode="linear" />
+                                            </circle>
+                                            
+                                            {/* Labels above flow */}
+                                            <text x="150" y="40" textAnchor="middle" style={{ fontSize: 9, fill: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Email Ingestion Pipeline</text>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+                </motion.div>
+
                 {/* CSA v2 Course Card */}
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}

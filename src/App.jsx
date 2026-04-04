@@ -7,6 +7,7 @@ const Home = lazy(() => import('./pages/Home'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const SOCLabProject = lazy(() => import('./pages/SOCLabProject'));
+const PhishingDetectionProject = lazy(() => import('./pages/PhishingDetectionProject'));
 
 const CSACourseLayout = lazy(() => import('./layouts/CSACourseLayout'));
 const CSADashboard = lazy(() => import('./pages/csa/CSADashboard'));
@@ -48,6 +49,11 @@ function App() {
             <Route path="/project/soc-lab" element={
                 <Suspense fallback={<PageLoader />}>
                     <SOCLabProject />
+                </Suspense>
+            } />
+            <Route path="/project/phishing-detection-pipeline" element={
+                <Suspense fallback={<PageLoader />}>
+                    <PhishingDetectionProject />
                 </Suspense>
             } />
             <Route path="/csa" element={<CSACourseLayout><Suspense fallback={<PageLoader />}><CSADashboard /></Suspense></CSACourseLayout>} />
